@@ -1,0 +1,554 @@
+/* ============================================================
+   CYBERTOUR 2026 — game.css
+   Page principale : lots, roue, formulaire
+   ============================================================ */
+
+/* ── Navigation ───────────────────────────────────────────── */
+.site-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--s6);
+  background: rgba(9, 9, 11, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+
+.site-nav__logo {
+  font-family: var(--font-h);
+  font-size: var(--text-base);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--white);
+}
+
+/* ── Hero compact ─────────────────────────────────────────── */
+.game-hero {
+  padding: calc(56px + var(--s16)) var(--s6) var(--s16);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s5);
+}
+
+.game-hero__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+}
+
+.game-hero__title {
+  font-size: clamp(2.25rem, 6vw, var(--text-5xl));
+  line-height: 1.0;
+}
+
+.game-hero__date {
+  font-size: var(--text-sm);
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+/* Countdown compact */
+.countdown-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  margin-top: var(--s2);
+}
+
+.cd-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.cd-val {
+  font-family: var(--font-h);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--white);
+  min-width: 52px;
+  text-align: center;
+}
+
+.cd-lbl {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cd-sep {
+  font-family: var(--font-h);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--border-mid);
+  line-height: 1;
+  align-self: flex-start;
+  margin-top: 2px;
+  animation: blink 1s step-end infinite;
+}
+
+/* ── Section lots ─────────────────────────────────────────── */
+.prizes-section {
+  padding: var(--s16) var(--s6);
+  border-top: 1px solid var(--border);
+}
+
+.section-header {
+  margin-bottom: var(--s10);
+}
+
+.section-label {
+  font-size: var(--text-xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: var(--s3);
+  font-family: var(--font-body);
+}
+
+.section-title {
+  font-size: clamp(1.5rem, 3vw, var(--text-3xl));
+  margin-bottom: var(--s3);
+}
+
+.section-sub {
+  color: var(--muted);
+  font-size: var(--text-sm);
+  line-height: 1.7;
+}
+
+/* Grille des lots */
+.prizes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+
+.prize-card {
+  background: var(--surface);
+  padding: var(--s6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  transition: background var(--t-fast);
+}
+
+.prize-card:hover {
+  background: var(--surface-2);
+}
+
+.prize-card__icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+}
+
+.prize-card__icon svg {
+  width: 22px;
+  height: 22px;
+  stroke-width: 1.5;
+}
+
+.prize-card__name {
+  font-family: var(--font-h);
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1.3;
+}
+
+.prize-card__desc {
+  font-size: var(--text-sm);
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.prize-card--jackpot {
+  background: var(--accent-pale);
+  border: 1px solid rgba(37,99,235,.25);
+}
+.prize-card--jackpot .prize-card__icon { color: #60a5fa; }
+.prize-card--jackpot .prize-card__name { color: #93c5fd; }
+
+/* ── Section roue ─────────────────────────────────────────── */
+.wheel-section {
+  padding: var(--s16) var(--s6);
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s12);
+}
+
+.wheel-section .section-header {
+  text-align: center;
+  margin-bottom: 0;
+}
+
+/* Wrapper canvas */
+.wheel-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+#wheelCanvas {
+  display: block;
+  width: min(440px, 92vw);
+  height: min(440px, 92vw);
+  border-radius: 50%;
+  touch-action: manipulation;
+}
+
+/* Pointer */
+.wheel-pointer {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left:  10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top:   22px solid var(--white);
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.5));
+  z-index: 5;
+}
+
+/* Bouton central */
+.wheel-center-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 2px solid var(--border-mid);
+  color: var(--white);
+  font-family: var(--font-h);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color var(--t-fast), box-shadow var(--t-fast), transform var(--t-fast);
+}
+
+.wheel-center-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-pale), var(--accent-glow);
+  transform: translate(-50%, -50%) scale(1.06);
+}
+
+.wheel-center-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.3;
+}
+
+/* Déjà joué */
+.already-played-notice {
+  display: none;
+  max-width: 420px;
+  width: 100%;
+  padding: var(--s6);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  text-align: center;
+  flex-direction: column;
+  gap: var(--s3);
+  align-items: center;
+}
+.already-played-notice.active { display: flex; }
+
+/* ── Overlay résultat ─────────────────────────────────────── */
+.result-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 800;
+  background: rgba(9,9,11,.9);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s6);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--t-slow);
+}
+
+.result-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.result-card {
+  background: var(--surface);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--r-lg);
+  padding: var(--s10) var(--s8);
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s5);
+  align-items: center;
+  animation: card-up 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+@keyframes card-up {
+  from { transform: translateY(32px) scale(0.95); opacity: 0; }
+  to   { transform: translateY(0)    scale(1);    opacity: 1; }
+}
+
+.result-card__label {
+  font-size: var(--text-xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.result-card__prize {
+  font-family: var(--font-h);
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.result-card__sub {
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
+.result-card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  width: 100%;
+  padding-top: var(--s2);
+}
+
+/* ── Section formulaire ───────────────────────────────────── */
+.form-section {
+  display: none;
+  padding: var(--s16) var(--s6);
+  border-top: 1px solid var(--border);
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s10);
+}
+.form-section.active { display: flex; }
+
+.form-section .section-header { text-align: center; margin-bottom: 0; }
+
+/* Récap lot */
+.prize-recap {
+  display: flex;
+  align-items: center;
+  gap: var(--s5);
+  padding: var(--s4) var(--s6);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  width: 100%;
+  max-width: 500px;
+}
+
+.prize-recap__line { width: 3px; height: 40px; background: var(--accent); border-radius: 2px; flex-shrink: 0; }
+
+.prize-recap__info {}
+.prize-recap__label { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .08em; color: var(--accent); font-weight: 600; margin-bottom: 3px; }
+.prize-recap__name  { font-family: var(--font-h); font-size: var(--text-lg); font-weight: 700; }
+
+/* Card formulaire */
+.form-card {
+  width: 100%;
+  max-width: 500px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+
+.form-card__inner {
+  padding: var(--s8);
+}
+
+/* Champs */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s4); }
+
+.field { display: flex; flex-direction: column; gap: var(--s2); }
+.field--full { grid-column: 1 / -1; }
+
+.field label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--white);
+}
+
+.field label .req { color: var(--accent); margin-left: 2px; }
+
+.field input {
+  padding: 10px var(--s4);
+  background: var(--bg);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: var(--r-md);
+  color: var(--white);
+  font-size: var(--text-sm);
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+  width: 100%;
+}
+
+.field input::placeholder { color: rgba(248,250,252,.2); }
+
+.field input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(37,99,235,.15);
+}
+
+.field input.err { border-color: var(--danger); }
+.field input.ok  { border-color: rgba(16,185,129,.5); }
+
+.field-error {
+  font-size: var(--text-xs);
+  color: var(--danger);
+  display: none;
+}
+.field-error.active { display: block; }
+
+/* Checkbox RGPD */
+.rgpd-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s3);
+  padding: var(--s4);
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+  cursor: pointer;
+}
+
+.rgpd-row input[type="checkbox"] {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 4px;
+  background: var(--bg);
+  cursor: pointer;
+  position: relative;
+  transition: background var(--t-fast), border-color var(--t-fast);
+}
+
+.rgpd-row input[type="checkbox"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.rgpd-row input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 12 9' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 4L4.5 7.5L11 1' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center;
+}
+
+.rgpd-label {
+  font-size: var(--text-sm);
+  color: var(--muted);
+  line-height: 1.6;
+  user-select: none;
+}
+
+/* Submit */
+.form-footer {
+  padding: var(--s6) var(--s8);
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.btn-submit {
+  width: 100%;
+  padding: var(--s4);
+  font-size: var(--text-base);
+}
+
+.form-note {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  text-align: center;
+}
+
+.btn-submit .spinner {
+  display: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,.2);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+.btn-submit.loading .spinner { display: block; }
+.btn-submit.loading .btn-text { display: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Footer ───────────────────────────────────────────────── */
+.site-footer {
+  border-top: 1px solid var(--border);
+  padding: var(--s8) var(--s6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--s3);
+}
+
+.site-footer p {
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .form-card__inner { padding: var(--s6) var(--s4); }
+  .form-footer { padding: var(--s5) var(--s4); }
+  .prizes-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 380px) {
+  .prizes-grid { grid-template-columns: 1fr; }
+}

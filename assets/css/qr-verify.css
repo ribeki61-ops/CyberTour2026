@@ -1,0 +1,337 @@
+/* ============================================================
+   CYBERTOUR 2026 — qr-verify.css
+   Overlay de vérification QR code
+   ============================================================ */
+
+/* ── Overlay principal ────────────────────────────────────── */
+.qr-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(10, 10, 26, 0.96);
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  transition: opacity var(--transition-slow);
+}
+
+.qr-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Boîte centrale ───────────────────────────────────────── */
+.qr-box {
+  width: 100%;
+  max-width: 480px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.5), var(--glow-violet);
+  position: relative;
+  overflow: hidden;
+}
+
+.qr-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-violet), var(--color-cyan));
+}
+
+/* ── Header ───────────────────────────────────────────────── */
+.qr-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.qr-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto;
+  background: rgba(124, 58, 237, 0.15);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+
+.qr-header h2 {
+  font-size: var(--text-xl);
+  color: var(--color-white);
+}
+
+.qr-header p {
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+  line-height: 1.6;
+  max-width: 36ch;
+  margin: 0 auto;
+  text-align: center;
+}
+
+/* ── Flux vidéo ───────────────────────────────────────────── */
+.qr-video-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  max-width: 280px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #000;
+  display: none;
+}
+
+.qr-video-container.active { display: block; }
+
+.qr-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Cadre cible animé */
+.qr-frame {
+  position: absolute;
+  inset: 10%;
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  pointer-events: none;
+}
+
+.qr-frame::before,
+.qr-frame::after {
+  content: '';
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-color: var(--color-cyan);
+  border-style: solid;
+  border-radius: 3px;
+}
+
+.qr-frame::before {
+  top: -2px;
+  left: -2px;
+  border-width: 3px 0 0 3px;
+}
+
+.qr-frame::after {
+  bottom: -2px;
+  right: -2px;
+  border-width: 0 3px 3px 0;
+}
+
+/* Ligne de scan */
+.qr-scan-line {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-cyan), transparent);
+  box-shadow: 0 0 8px var(--color-cyan);
+  animation: scan-move 2s ease-in-out infinite;
+}
+
+@keyframes scan-move {
+  0%, 100% { top: 12%; }
+  50%       { top: 85%; }
+}
+
+/* Coins supplémentaires */
+.qr-frame-corner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-color: var(--color-cyan);
+  border-style: solid;
+  border-radius: 3px;
+}
+.qr-frame-corner--tl { top: -2px;    right: -2px;   border-width: 3px 3px 0 0; }
+.qr-frame-corner--br { bottom: -2px; left: -2px;    border-width: 0 0 3px 3px; }
+
+/* ── Timer progressbar ────────────────────────────────────── */
+.qr-timer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.qr-timer__bar-track {
+  width: 100%;
+  height: 4px;
+  background: var(--color-surface-2);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  display: none;
+}
+
+.qr-timer__bar-track.active { display: block; }
+
+.qr-timer__bar-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, var(--color-violet), var(--color-cyan));
+  border-radius: var(--radius-full);
+  transform-origin: left;
+  animation: timer-drain 60s linear forwards;
+}
+
+@keyframes timer-drain {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+.qr-timer__label {
+  font-size: var(--text-xs);
+  color: var(--color-muted);
+  text-align: right;
+}
+
+/* ── QR code fallback statique ────────────────────────────── */
+.qr-fallback {
+  width: 100%;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.qr-fallback__img {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  background: white;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.qr-fallback__img svg {
+  width: 100%;
+  height: 100%;
+}
+
+.qr-fallback__text {
+  flex: 1;
+}
+
+.qr-fallback__text p {
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+  line-height: 1.5;
+  max-width: none;
+}
+
+/* ── Success state ────────────────────────────────────────── */
+.qr-success {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  text-align: center;
+}
+
+.qr-success.active { display: flex; }
+
+.qr-success__icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(34, 211, 165, 0.12);
+  border: 2px solid var(--color-success);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  box-shadow: 0 0 30px rgba(34, 211, 165, 0.3);
+  animation: success-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes success-pop {
+  from { transform: scale(0.4); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+.qr-success__title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--color-success);
+}
+
+.qr-success__sub {
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
+/* ── Aide ─────────────────────────────────────────────────── */
+.qr-help-toggle {
+  background: none;
+  border: none;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color var(--transition-fast);
+}
+.qr-help-toggle:hover { color: var(--color-white); }
+
+.qr-help-panel {
+  display: none;
+  width: 100%;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+.qr-help-panel.active { display: block; }
+
+.qr-help-panel ol {
+  list-style: decimal;
+  padding-left: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.qr-help-panel li {
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+  line-height: 1.5;
+}
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .qr-box {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .qr-fallback {
+    flex-direction: column;
+    text-align: center;
+  }
+}

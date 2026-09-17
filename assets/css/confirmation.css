@@ -1,0 +1,200 @@
+/* ============================================================
+   CYBERTOUR 2026 — confirmation.css
+   Page de confirmation
+   ============================================================ */
+
+.confirm-page {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s8) var(--s6);
+  gap: var(--s8);
+}
+
+/* Logo */
+.confirm-logo {
+  font-family: var(--font-h);
+  font-size: var(--text-sm);
+  font-weight: 800;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+
+/* Card */
+.confirm-card {
+  width: 100%;
+  max-width: 480px;
+  background: var(--surface);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+
+.confirm-card__body {
+  padding: var(--s8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s6);
+  align-items: flex-start;
+}
+
+.confirm-status {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+}
+
+.confirm-status__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  flex-shrink: 0;
+}
+
+.confirm-status__text {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--success);
+  font-weight: 600;
+}
+
+.confirm-title {
+  font-size: clamp(1.5rem, 4vw, var(--text-3xl));
+  line-height: 1.1;
+}
+
+/* Lot */
+.confirm-prize {
+  width: 100%;
+  padding: var(--s5);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.confirm-prize__label {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.confirm-prize__name {
+  font-family: var(--font-h);
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  color: var(--white);
+}
+
+/* Instructions */
+.confirm-instructions {
+  font-size: var(--text-sm);
+  color: var(--muted);
+  line-height: 1.7;
+  border-left: 2px solid var(--accent);
+  padding-left: var(--s4);
+}
+
+/* QR */
+.confirm-qr-block {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.confirm-qr-label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--white);
+}
+
+.confirm-qr-code {
+  background: white;
+  border-radius: var(--r-md);
+  padding: var(--s4);
+  display: inline-block;
+}
+.confirm-qr-code canvas { display: block; width: 160px; height: 160px; }
+
+.confirm-ref {
+  font-family: var(--font-h);
+  font-size: var(--text-sm);
+  color: var(--muted);
+  letter-spacing: 0.1em;
+}
+
+/* Timer */
+.confirm-timer {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
+.confirm-timer__val {
+  font-family: var(--font-h);
+  font-weight: 700;
+  color: var(--danger);
+}
+
+/* Footer card */
+.confirm-card__foot {
+  padding: var(--s5) var(--s8);
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.btn-linkedin {
+  background: #0a66c2;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+}
+.btn-linkedin:hover { background: #004182; transform: translateY(-1px); }
+
+.confirm-note {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  text-align: center;
+}
+
+/* Expired banner */
+.expired-banner {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(9,9,11,.97);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s6);
+  text-align: center;
+  padding: var(--s6);
+}
+
+.expired-ref {
+  font-family: var(--font-h);
+  font-size: var(--text-xl);
+  color: var(--accent);
+  letter-spacing: .1em;
+}
+
+@media (max-width: 480px) {
+  .confirm-card__body { padding: var(--s6) var(--s4); }
+  .confirm-card__foot { padding: var(--s4); }
+}

@@ -1,0 +1,306 @@
+/* ============================================================
+   CYBERTOUR 2026 — wheel.css
+   Roulette canvas, pointer, overlay résultat
+   ============================================================ */
+
+/* ── Section roulette ─────────────────────────────────────── */
+.wheel-section {
+  padding: var(--space-16) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-12);
+  min-height: 100svh;
+  position: relative;
+}
+
+.wheel-section__header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.wheel-section__title {
+  font-size: clamp(1.75rem, 4vw, var(--text-3xl));
+}
+
+.wheel-section__sub {
+  color: var(--color-muted);
+  font-size: var(--text-base);
+}
+
+/* ── Conteneur principal ──────────────────────────────────── */
+.wheel-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+/* ── Canvas wrapper ───────────────────────────────────────── */
+.wheel-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Anneau décoratif externe */
+.wheel-ring {
+  position: absolute;
+  inset: -16px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 245, 212, 0.15);
+  pointer-events: none;
+}
+
+.wheel-ring::before,
+.wheel-ring::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+}
+
+.wheel-ring::before {
+  inset: -8px;
+  border: 1px solid rgba(124, 58, 237, 0.1);
+}
+
+.wheel-ring::after {
+  inset: -20px;
+  border: 1px dashed rgba(0, 245, 212, 0.06);
+  animation: ring-rotate 30s linear infinite;
+}
+
+@keyframes ring-rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Glow ambient sous la roue */
+.wheel-glow {
+  position: absolute;
+  inset: 20%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse,
+    rgba(124, 58, 237, 0.25) 0%,
+    transparent 70%
+  );
+  filter: blur(30px);
+  pointer-events: none;
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50%       { opacity: 1;   transform: scale(1.1); }
+}
+
+/* Canvas */
+#wheelCanvas {
+  display: block;
+  width: min(420px, 90vw);
+  height: min(420px, 90vw);
+  border-radius: 50%;
+  position: relative;
+  z-index: 1;
+  cursor: pointer;
+  transition: filter var(--transition-normal);
+  touch-action: manipulation;
+}
+
+#wheelCanvas:hover {
+  filter: brightness(1.05);
+}
+
+#wheelCanvas.spinning {
+  cursor: not-allowed;
+  filter: none;
+}
+
+/* ── Pointeur ─────────────────────────────────────────────── */
+.wheel-pointer {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  width: 0;
+  height: 0;
+  border-left:  14px solid transparent;
+  border-right: 14px solid transparent;
+  border-top:   28px solid var(--color-cyan);
+  filter: drop-shadow(0 0 8px var(--color-cyan));
+}
+
+/* ── Bouton central ───────────────────────────────────────── */
+.wheel-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--color-bg);
+  border: 3px solid var(--color-cyan);
+  color: var(--color-cyan);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--glow-cyan), inset 0 0 20px rgba(0, 245, 212, 0.05);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  animation: spin-btn-pulse 2.5s ease-in-out infinite;
+}
+
+.wheel-btn:not(:disabled):hover {
+  transform: translate(-50%, -50%) scale(1.08);
+  box-shadow: 0 0 40px rgba(0, 245, 212, 0.7), 0 0 80px rgba(0, 245, 212, 0.25);
+}
+
+.wheel-btn:disabled {
+  border-color: rgba(232, 232, 240, 0.2);
+  color: rgba(232, 232, 240, 0.2);
+  cursor: not-allowed;
+  animation: none;
+  box-shadow: none;
+}
+
+@keyframes spin-btn-pulse {
+  0%, 100% { box-shadow: var(--glow-cyan), inset 0 0 20px rgba(0, 245, 212, 0.05); }
+  50%       { box-shadow: 0 0 35px rgba(0, 245, 212, 0.55), 0 0 70px rgba(0, 245, 212, 0.2); }
+}
+
+/* ── Overlay résultat ─────────────────────────────────────── */
+.wheel-result-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: rgba(10, 10, 26, 0.88);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-slow);
+}
+
+.wheel-result-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.wheel-result-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  box-shadow: 0 0 80px rgba(0, 0, 0, 0.6), var(--glow-violet);
+  animation: result-slide 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.wheel-result-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-cyan), var(--color-violet));
+}
+
+@keyframes result-slide {
+  from { transform: scale(0.6) translateY(40px); opacity: 0; }
+  to   { transform: scale(1)   translateY(0);    opacity: 1; }
+}
+
+.wheel-result-emoji {
+  font-size: 72px;
+  line-height: 1;
+  filter: drop-shadow(0 0 20px rgba(0, 245, 212, 0.4));
+  animation: emoji-bounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+}
+
+@keyframes emoji-bounce {
+  from { transform: scale(0) rotate(-20deg); }
+  to   { transform: scale(1) rotate(0deg); }
+}
+
+.wheel-result-label {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-cyan);
+  font-weight: 600;
+}
+
+.wheel-result-prize {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-white);
+}
+
+.wheel-result-sub {
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+  line-height: 1.6;
+}
+
+.wheel-result-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+/* ── Déjà participé ───────────────────────────────────────── */
+.wheel-already-played {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  text-align: center;
+  max-width: 420px;
+  display: none;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+.wheel-already-played.active { display: flex; }
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .wheel-section {
+    padding: var(--space-8) var(--space-4);
+  }
+
+  .wheel-btn {
+    width: 68px;
+    height: 68px;
+    font-size: 10px;
+  }
+}

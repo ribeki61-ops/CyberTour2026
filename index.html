@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Cybertour 2026 — Tour cybersécurité. Participez et gagnez des goodies.">
+  <title>Cybertour 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <style>
+    .landing {
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: var(--s8) var(--s6);
+      gap: var(--s8);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Grille de fond subtile */
+    .landing::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 80px 80px;
+      mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 40%, transparent 100%);
+      pointer-events: none;
+    }
+
+    .landing__content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--s6);
+      max-width: 560px;
+    }
+
+    .landing__title {
+      font-family: var(--font-h);
+      font-size: clamp(3rem, 10vw, 6rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 0.95;
+      color: var(--white);
+    }
+
+    .landing__title .year {
+      display: block;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(255,255,255,.25);
+    }
+
+    .landing__sub {
+      font-size: var(--text-lg);
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .landing__meta {
+      font-size: var(--text-sm);
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .landing__actions {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--s3);
+      margin-top: var(--s2);
+    }
+
+    /* Ligne décorative */
+    .landing__rule {
+      width: 1px;
+      height: 80px;
+      background: linear-gradient(to bottom, transparent, var(--border-mid), transparent);
+    }
+
+    /* Nav */
+    .landing-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 var(--s6);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .landing-nav__logo {
+      font-family: var(--font-h);
+      font-size: var(--text-base);
+      font-weight: 800;
+      color: var(--white);
+    }
+
+    /* Footer */
+    .landing-foot {
+      position: relative;
+      z-index: 1;
+      font-size: var(--text-xs);
+      color: var(--muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="landing-nav">
+    <span class="landing-nav__logo">CYBERTOUR 2026</span>
+    <span class="tag tag--live">En direct</span>
+  </nav>
+
+  <main class="landing">
+    <div class="landing__rule" aria-hidden="true"></div>
+
+    <div class="landing__content">
+
+      <div style="display:flex; align-items:center; gap:var(--s3);">
+        <span class="tag">Tour Cybersécurité</span>
+        <span class="tag">15 oct. 2026</span>
+      </div>
+
+      <h1 class="landing__title">
+        CYBER<br>TOUR
+        <span class="year">2026</span>
+      </h1>
+
+      <p class="landing__sub">
+        Participez à la roulette des goodies.<br>
+        Une participation par personne, des lots à gagner sur place.
+      </p>
+
+      <div class="landing__actions">
+        <a href="game.html" class="btn btn-primary btn-lg">
+          Accéder à la roulette
+        </a>
+        <p class="landing__meta">Rouen · Événement en cours</p>
+      </div>
+
+    </div>
+
+    <div class="landing__rule" aria-hidden="true"></div>
+  </main>
+
+  <footer class="landing-foot" style="padding: var(--s6);">
+    <p>© 2026 Cybertour — Une participation par personne</p>
+  </footer>
+
+</body>
+</html>

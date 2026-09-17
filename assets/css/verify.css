@@ -1,0 +1,385 @@
+/* ============================================================
+   CYBERTOUR 2026 — verify.css
+   Modal de vérification caméra
+   ============================================================ */
+
+.verify-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: rgba(9,9,11,.92);
+  backdrop-filter: blur(14px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s6);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--t-slow);
+}
+
+.verify-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ── Modal ────────────────────────────────────────────────── */
+.verify-modal {
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.verify-modal__head {
+  padding: var(--s6) var(--s6) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.verify-modal__title {
+  font-family: var(--font-h);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--white);
+}
+
+.verify-modal__desc {
+  font-size: var(--text-sm);
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.verify-modal__body {
+  padding: var(--s5) var(--s6) var(--s6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+}
+
+/* ── Vidéo ────────────────────────────────────────────────── */
+.verify-video-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: #000;
+  display: none;
+}
+.verify-video-wrap.active { display: block; }
+
+#verify-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Cadre de scan */
+.scan-frame {
+  position: absolute;
+  inset: 12%;
+  pointer-events: none;
+}
+
+.scan-frame::before,
+.scan-frame::after,
+.scan-corner-br,
+.scan-corner-tl {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-color: var(--white);
+  border-style: solid;
+}
+
+.scan-frame::before {
+  top: 0; left: 0;
+  border-width: 2px 0 0 2px;
+}
+.scan-frame::after {
+  top: 0; right: 0;
+  border-width: 2px 2px 0 0;
+}
+.scan-corner-br {
+  bottom: 0; right: 0;
+  border-width: 0 2px 2px 0;
+}
+.scan-corner-tl {
+  bottom: 0; left: 0;
+  border-width: 0 0 2px 2px;
+}
+
+/* Ligne de scan */
+.scan-line {
+  position: absolute;
+  left: 12%; right: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  animation: scan 2s ease-in-out infinite;
+}
+@keyframes scan {
+  0%, 100% { top: 12%; opacity: 0; }
+  10%       { opacity: 1; }
+  90%       { opacity: 1; }
+  0%        { top: 12%; }
+  50%       { top: 87%; }
+  100%      { top: 12%; }
+}
+
+/* ── Timer ────────────────────────────────────────────────── */
+.verify-timer {
+  display: none;
+  flex-direction: column;
+  gap: var(--s2);
+}
+.verify-timer.active { display: flex; }
+
+.verify-timer__track {
+  height: 2px;
+  background: var(--surface-2);
+  border-radius: var(--r-full);
+  overflow: hidden;
+}
+
+.verify-timer__fill {
+  height: 100%;
+  width: 100%;
+  background: var(--accent);
+  transform-origin: left;
+  animation: drain 60s linear forwards;
+}
+@keyframes drain { to { transform: scaleX(0); } }
+
+.verify-timer__label {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  text-align: right;
+}
+
+/* ── QR fallback ──────────────────────────────────────────── */
+.verify-fallback {
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+  padding: var(--s4);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
+.verify-fallback__qr {
+  width: 72px;
+  height: 72px;
+  background: white;
+  border-radius: var(--r-sm);
+  padding: 3px;
+  flex-shrink: 0;
+}
+.verify-fallback__qr svg { width: 100%; height: 100%; }
+
+.verify-fallback__text p {
+  font-size: var(--text-sm);
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* ── Erreur / Succès ──────────────────────────────────────── */
+.verify-error {
+  font-size: var(--text-sm);
+  color: var(--danger);
+  padding: var(--s3);
+  border: 1px solid rgba(239,68,68,.2);
+  border-radius: var(--r-md);
+  background: rgba(239,68,68,.06);
+  display: none;
+}
+.verify-error.active { display: block; }
+
+.verify-success {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s4);
+  text-align: center;
+  padding: var(--s6) 0;
+}
+.verify-success.active { display: flex; }
+
+.verify-success__icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1.5px solid var(--success);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pop 0.35s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes pop {
+  from { transform: scale(0.4); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+.verify-success__icon svg {
+  width: 24px;
+  height: 24px;
+  stroke: var(--success);
+  stroke-width: 2;
+  fill: none;
+}
+
+.verify-success__title {
+  font-family: var(--font-h);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--success);
+}
+
+.verify-success__sub {
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
+/* ── Bouton principal modal ───────────────────────────────── */
+.verify-modal__foot {
+  padding: var(--s4) var(--s6) var(--s6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+/* Aide toggle */
+.verify-help-toggle {
+  background: none;
+  border: none;
+  font-size: var(--text-xs);
+  color: var(--muted);
+  cursor: pointer;
+  text-align: left;
+  transition: color var(--t-fast);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.verify-help-toggle:hover { color: var(--white); }
+
+.verify-help-panel {
+  display: none;
+  padding: var(--s4);
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+  font-size: var(--text-sm);
+  color: var(--muted);
+  line-height: 1.65;
+}
+.verify-help-panel.active { display: block; }
+
+.verify-help-panel ol {
+  list-style: decimal;
+  padding-left: var(--s6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .verify-modal__head { padding: var(--s5) var(--s4) 0; }
+  .verify-modal__body { padding: var(--s4) var(--s4) var(--s5); }
+  .verify-modal__foot { padding: var(--s3) var(--s4) var(--s5); }
+}
+
+/* ── Selfie spécifique ─────────────────────────────────────── */
+
+/* Miroir vidéo (selfie naturel) */
+#verify-video { transform: scaleX(-1); }
+
+/* Countdown overlay sur la vidéo */
+.verify-countdown {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-h);
+  font-size: 5rem;
+  font-weight: 800;
+  color: white;
+  text-shadow: 0 2px 20px rgba(0,0,0,.7);
+  pointer-events: none;
+  transition: transform 0.2s ease;
+  z-index: 10;
+}
+
+/* Flash blanc */
+.verify-flash {
+  position: absolute;
+  inset: 0;
+  background: white;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+  z-index: 20;
+  border-radius: var(--r-md);
+}
+
+/* Bouton capture */
+.verify-capture-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: white;
+  border: 3px solid var(--border);
+  cursor: pointer;
+  margin: 0 auto;
+  transition: transform var(--t-fast), box-shadow var(--t-fast);
+  position: relative;
+}
+
+.verify-capture-btn::after {
+  content: '';
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: block;
+  transition: background var(--t-fast);
+}
+
+.verify-capture-btn:hover::after { background: #1d51d4; }
+.verify-capture-btn:hover { transform: scale(1.05); box-shadow: 0 0 0 4px rgba(37,99,235,.2); }
+.verify-capture-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+.verify-capture-label {
+  text-align: center;
+  font-size: var(--text-xs);
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+/* Preview photo */
+.verify-preview {
+  display: none;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.verify-preview img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Roue figée pendant vérification */
+.wheel-frozen { opacity: 0.4; pointer-events: none; filter: blur(1px); transition: opacity 0.3s, filter 0.3s; }
