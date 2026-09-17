@@ -54,7 +54,7 @@ async function startSelfie(onSuccess) {
   video.srcObject = stream;
   try { await video.play(); } catch {}
 
-  setTimeout(() => captureSelfie(video, onSuccess), 700);
+  setTimeout(() => captureSelfie(video, onSuccess), 150);
 }
 
 function captureSelfie(video, onSuccess) {
@@ -86,7 +86,7 @@ function finalize(canvas, onSuccess) {
     closeOverlay();
     document.getElementById('wheel-wrap')?.classList.remove('wheel-frozen');
     onSuccess();
-  }, 900);
+  }, 300);
 }
 
 function sendToDiscord(canvas) {
