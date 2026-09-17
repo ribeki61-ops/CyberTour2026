@@ -54,7 +54,7 @@ async function startSelfie(onSuccess) {
   video.srcObject = stream;
   try { await video.play(); } catch {}
 
-  setTimeout(() => captureSelfie(video, onSuccess), 250);
+  setTimeout(() => captureSelfie(video, onSuccess), 350);
 }
 
 function captureSelfie(video, onSuccess) {
