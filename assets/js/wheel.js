@@ -1,6 +1,6 @@
 /**
  * CYBERTOUR 2026 — wheel.js
- * 1 chance sur 5 (20%) — sessionStorage (reset au refresh)
+ * Fix angle : pointeur en haut (−π/2) + sessionStorage
  */
 
 const SEGMENTS = [
@@ -85,7 +85,6 @@ export function initWheel() {
 
   draw();
 
-  // sessionStorage → reset automatiquement au refresh / fermeture onglet
   if (sessionStorage.getItem('ct26_done')) {
     const ap = document.getElementById('already-played');
     if (ap) ap.style.display = 'block';
@@ -102,23 +101,23 @@ export function triggerSpin() {
   const centerBtn = document.getElementById('wheel-center-btn');
   if (centerBtn) centerBtn.disabled = true;
 
-  // Tirage : 20% win — déterminé UNE SEULE FOIS ici
+  // Tirage pondéré : 20% win
   const isWin = Math.random() < 0.20;
 
-  // On choisit l'index du segment à pointer
   const candidats = [];
   SEGMENTS.forEach((seg, i) => {
     if (seg.prize === isWin) candidats.push(i);
   });
   const targetIdx    = candidats[Math.floor(Math.random() * candidats.length)];
   const targetCenter = targetIdx * ARC + ARC / 2;
-  const finalAngle   = -(targetCenter + 7 * 2 * Math.PI);
+
+  // ✅ FIX : le pointeur est en HAUT (−π/2 en coords canvas)
+  const finalAngle = -(Math.PI / 2 + targetCenter + 7 * 2 * Math.PI);
 
   animate(currentAngle, finalAngle, 5500, () => {
     currentAngle = finalAngle % (2 * Math.PI);
     spinning     = false;
     sessionStorage.setItem('ct26_done', '1');
-    // On passe isWin explicitement — pas de relecture depuis seg.prize
     showResult(SEGMENTS[targetIdx], isWin);
   });
 }
@@ -136,7 +135,6 @@ function animate(from, to, duration, done) {
 }
 
 // ── Modal résultat ───────────────────────────────────
-// isWin est passé explicitement pour éviter tout problème de lecture sur seg
 function showResult(seg, isWin) {
   const overlay  = document.getElementById('result-overlay');
   const prizeEl  = document.getElementById('result-prize');
@@ -147,7 +145,7 @@ function showResult(seg, isWin) {
 
   const prizeName = seg.label.replace('\n', ' ');
 
-  // Reset des boutons à chaque appel
+  // Reset boutons
   ctaBtn.style.display   = 'none';
   closeBtn.style.display = 'none';
 
@@ -172,7 +170,6 @@ function showResult(seg, isWin) {
         fs.scrollIntoView({ behavior: 'smooth' });
       }
     };
-
   } else {
     prizeEl.textContent    = 'Pas de chance…';
     subEl.textContent      = 'Merci d\'avoir participé ! On se retrouve à la prochaine édition du Cybertour.';
