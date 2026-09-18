@@ -1,6 +1,5 @@
 /**
  * CYBERTOUR 2026 — wheel.js
- * Fix angle : pointeur en haut (−π/2) + sessionStorage
  */
 
 const SEGMENTS = [
@@ -25,7 +24,6 @@ let currentAngle = 0;
 let spinning     = false;
 let canvas, ctx;
 
-// ── Dessin ───────────────────────────────────────────
 function draw() {
   const cx = canvas.width  / 2;
   const cy = canvas.height / 2;
@@ -63,9 +61,8 @@ function draw() {
     ctx.restore();
   });
 
-  // Cercle centre
   ctx.beginPath();
-  ctx.arc(cx, cy, 28, 0, 2 * Math.PI);
+  ctx.arc(canvas.width / 2, canvas.height / 2, 28, 0, 2 * Math.PI);
   ctx.fillStyle   = '#09090b';
   ctx.fill();
   ctx.strokeStyle = '#2563eb';
@@ -73,7 +70,6 @@ function draw() {
   ctx.stroke();
 }
 
-// ── Init ─────────────────────────────────────────────
 export function initWheel() {
   canvas = document.getElementById('wheelCanvas');
   if (!canvas) return;
@@ -93,7 +89,6 @@ export function initWheel() {
   }
 }
 
-// ── Spin ─────────────────────────────────────────────
 export function triggerSpin() {
   if (spinning) return;
   spinning = true;
@@ -101,7 +96,6 @@ export function triggerSpin() {
   const centerBtn = document.getElementById('wheel-center-btn');
   if (centerBtn) centerBtn.disabled = true;
 
-  // Tirage pondéré : 20% win
   const isWin = Math.random() < 0.20;
 
   const candidats = [];
@@ -110,9 +104,7 @@ export function triggerSpin() {
   });
   const targetIdx    = candidats[Math.floor(Math.random() * candidats.length)];
   const targetCenter = targetIdx * ARC + ARC / 2;
-
-  // ✅ FIX : le pointeur est en HAUT (−π/2 en coords canvas)
-  const finalAngle = -(Math.PI / 2 + targetCenter + 7 * 2 * Math.PI);
+  const finalAngle   = -(Math.PI / 2 + targetCenter + 7 * 2 * Math.PI);
 
   animate(currentAngle, finalAngle, 5500, () => {
     currentAngle = finalAngle % (2 * Math.PI);
@@ -122,7 +114,6 @@ export function triggerSpin() {
   });
 }
 
-// ── Animation easeOut ────────────────────────────────
 function animate(from, to, duration, done) {
   const t0 = performance.now();
   (function frame(now) {
@@ -134,7 +125,6 @@ function animate(from, to, duration, done) {
   })(performance.now());
 }
 
-// ── Modal résultat ───────────────────────────────────
 function showResult(seg, isWin) {
   const overlay  = document.getElementById('result-overlay');
   const prizeEl  = document.getElementById('result-prize');
@@ -145,7 +135,6 @@ function showResult(seg, isWin) {
 
   const prizeName = seg.label.replace('\n', ' ');
 
-  // Reset boutons
   ctaBtn.style.display   = 'none';
   closeBtn.style.display = 'none';
 
@@ -154,29 +143,51 @@ function showResult(seg, isWin) {
       confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
       setTimeout(() => confetti({ particleCount: 80, spread: 60, origin: { y: 0.5 } }), 700);
     }
+
     prizeEl.textContent  = prizeName;
     subEl.textContent    = 'Félicitations ! Renseignez vos coordonnées pour récupérer votre lot au stand.';
     ctaBtn.textContent   = 'Remplir mes coordonnées';
-    ctaBtn.style.display = '';
+    ctaBtn.style.display = 'inline-flex';
 
-    ctaBtn.onclick = () => {
-      overlay.classList.remove('active');
-      document.getElementById('field-lot').value              = prizeName;
-      document.getElementById('field-ts').value               = new Date().toISOString();
-      document.getElementById('prize-recap-name').textContent = prizeName;
-      const fs = document.getElementById('form-section');
-      if (fs) {
-        fs.style.display = '';
-        fs.scrollIntoView({ behavior: 'smooth' });
-      }
-    };
+    ctaBtn.onclick = () => afficherFormulaire(prizeName);
+
   } else {
     prizeEl.textContent    = 'Pas de chance…';
     subEl.textContent      = 'Merci d\'avoir participé ! On se retrouve à la prochaine édition du Cybertour.';
     closeBtn.textContent   = 'Fermer';
-    closeBtn.style.display = '';
+    closeBtn.style.display = 'inline-flex';
     closeBtn.onclick       = () => overlay.classList.remove('active');
   }
 
   overlay.classList.add('active');
+}
+
+function afficherFormulaire(prizeName) {
+  // 1. Fermer le modal résultat
+  const overlay = document.getElementById('result-overlay');
+  if (overlay) {
+    overlay.classList.remove('active');
+    overlay.style.display = 'none';
+  }
+
+  // 2. Remplir les champs cachés
+  const lotField = document.getElementById('field-lot');
+  const tsField  = document.getElementById('field-ts');
+  const recap    = document.getElementById('prize-recap-name');
+  if (lotField) lotField.value       = prizeName;
+  if (tsField)  tsField.value        = new Date().toISOString();
+  if (recap)    recap.textContent    = prizeName;
+
+  // 3. Afficher la section formulaire — setProperty 'important' passe au-dessus de tout CSS
+  const fs = document.getElementById("form-section");
+  if (fs) {
+    fs.classList.remove("form-section--hidden");
+    fs.style.setProperty('display', 'block', 'important');
+    fs.style.setProperty('visibility', 'visible', 'important');
+    fs.style.setProperty('opacity', '1', 'important');
+    // Scroll après un léger délai pour laisser le navigateur repeindre
+    setTimeout(() => {
+      fs.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+  }
 }
