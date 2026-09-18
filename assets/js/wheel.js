@@ -1,20 +1,21 @@
 /**
  * CYBERTOUR 2026 — wheel.js
- * 1 chance sur 5 (20% win)
+ * 1 chance sur 5 (20%) — 6 lots visibles + 6 "Pas de lot" intercalés
  */
 
-// ── Segments : 2 gagnants / 10 total ────────────────
 const SEGMENTS = [
-  { label: 'T-Shirt\nCybertour',  prize: true,  color: '#1d4ed8', text: '#ffffff' },
-  { label: 'Pas de\nlot',         prize: false, color: '#18181b', text: '#3f3f46' },
-  { label: 'Pas de\nlot',         prize: false, color: '#27272a', text: '#3f3f46' },
-  { label: 'Pas de\nlot',         prize: false, color: '#18181b', text: '#3f3f46' },
-  { label: 'Clé USB\n32 Go',      prize: true,  color: '#2563eb', text: '#ffffff' },
-  { label: 'Pas de\nlot',         prize: false, color: '#27272a', text: '#3f3f46' },
-  { label: 'Pas de\nlot',         prize: false, color: '#18181b', text: '#3f3f46' },
-  { label: 'Pas de\nlot',         prize: false, color: '#27272a', text: '#3f3f46' },
-  { label: 'Pas de\nlot',         prize: false, color: '#18181b', text: '#3f3f46' },
-  { label: 'Pas de\nlot',         prize: false, color: '#27272a', text: '#3f3f46' },
+  { label: 'T-Shirt\nCybertour',    prize: true,  color: '#1d4ed8', text: '#ffffff' },
+  { label: 'Pas de\nlot',           prize: false, color: '#18181b', text: '#3f3f46' },
+  { label: 'Clé USB\n32 Go',        prize: true,  color: '#2563eb', text: '#ffffff' },
+  { label: 'Pas de\nlot',           prize: false, color: '#27272a', text: '#3f3f46' },
+  { label: 'Pack\nStickers ×10',    prize: true,  color: '#1e40af', text: '#ffffff' },
+  { label: 'Pas de\nlot',           prize: false, color: '#18181b', text: '#3f3f46' },
+  { label: 'Sweat\nCybertour',      prize: true,  color: '#1d4ed8', text: '#ffffff' },
+  { label: 'Pas de\nlot',           prize: false, color: '#27272a', text: '#3f3f46' },
+  { label: 'Accès VIP\nLab-Cyber',  prize: true,  color: '#1e40af', text: '#ffffff' },
+  { label: 'Pas de\nlot',           prize: false, color: '#18181b', text: '#3f3f46' },
+  { label: 'Badge\nCollector',      prize: true,  color: '#2563eb', text: '#ffffff' },
+  { label: 'Pas de\nlot',           prize: false, color: '#27272a', text: '#3f3f46' },
 ];
 
 const N   = SEGMENTS.length;
@@ -53,12 +54,13 @@ function draw() {
     ctx.rotate(start + ARC / 2);
     ctx.textAlign = 'right';
     ctx.fillStyle = seg.text;
-    const fSize   = Math.max(10, Math.round(r * 0.085));
+    const fSize   = Math.max(9, Math.round(r * 0.075));
     ctx.font      = `600 ${fSize}px 'Inter', sans-serif`;
-    seg.label.split('\n').forEach((line, li, arr) => {
-      const lh   = fSize + 3;
-      const yOff = -(arr.length - 1) * lh / 2;
-      ctx.fillText(line, r - 14, yOff + li * lh + fSize * 0.35);
+    const lines   = seg.label.split('\n');
+    const lh      = fSize + 3;
+    const yOff    = -(lines.length - 1) * lh / 2;
+    lines.forEach((line, li) => {
+      ctx.fillText(line, r - 12, yOff + li * lh + fSize * 0.35);
     });
     ctx.restore();
   });
@@ -77,19 +79,20 @@ function draw() {
 export function initWheel() {
   canvas = document.getElementById('wheelCanvas');
   if (!canvas) return;
-  ctx    = canvas.getContext('2d');
+  ctx = canvas.getContext('2d');
 
-  const size      = Math.min(360, window.innerWidth - 32);
-  canvas.width    = size;
-  canvas.height   = size;
+  const size    = Math.min(380, window.innerWidth - 32);
+  canvas.width  = size;
+  canvas.height = size;
 
   draw();
 
   // Déjà joué ?
-  const stored = localStorage.getItem('ct26_done');
-  if (stored) {
-    document.getElementById('already-played')?.style.setProperty('display', 'block');
-    document.getElementById('wheel-wrap')?.style.setProperty('pointer-events', 'none');
+  if (localStorage.getItem('ct26_done')) {
+    const ap = document.getElementById('already-played');
+    if (ap) ap.style.display = 'block';
+    const ww = document.getElementById('wheel-wrap');
+    if (ww) ww.style.pointerEvents = 'none';
   }
 }
 
@@ -101,7 +104,7 @@ export function triggerSpin() {
   const centerBtn = document.getElementById('wheel-center-btn');
   if (centerBtn) centerBtn.disabled = true;
 
-  // Tirage : 20% win
+  // Tirage pondéré : 20% win, 80% lose
   const isWin = Math.random() < 0.20;
 
   const pool  = SEGMENTS
@@ -109,9 +112,9 @@ export function triggerSpin() {
     .filter(s => s.prize === isWin);
   const pick  = pool[Math.floor(Math.random() * pool.length)];
 
-  // Angle d'arrivée au milieu du segment sélectionné
+  // Angle cible : milieu du segment choisi
   const targetCenter = pick.i * ARC + ARC / 2;
-  const spins        = 6 * 2 * Math.PI;
+  const spins        = 7 * 2 * Math.PI;
   const finalAngle   = -(targetCenter + spins);
 
   animate(currentAngle, finalAngle, 5500, () => {
@@ -147,30 +150,33 @@ function showResult(seg) {
 
   if (seg.prize) {
     if (window.confetti) {
-      confetti({ particleCount: 130, spread: 80, origin: { y: 0.6 } });
+      confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
+      setTimeout(() => confetti({ particleCount: 80, spread: 60, origin: { y: 0.5 } }), 600);
     }
-    prizeEl.textContent     = prizeName;
-    subEl.textContent       = 'Félicitations ! Renseignez vos coordonnées pour récupérer votre lot au stand.';
-    ctaBtn.textContent      = 'Remplir mes coordonnées';
-    ctaBtn.style.display    = '';
-    closeBtn.style.display  = 'none';
+    prizeEl.textContent    = prizeName;
+    subEl.textContent      = 'Félicitations ! Renseignez vos coordonnées pour récupérer votre lot au stand.';
+    ctaBtn.textContent     = 'Remplir mes coordonnées';
+    ctaBtn.style.display   = '';
+    closeBtn.style.display = 'none';
 
     ctaBtn.onclick = () => {
       overlay.classList.remove('active');
-      // Pré-remplir + afficher formulaire
-      document.getElementById('field-lot').value          = prizeName;
-      document.getElementById('field-ts').value           = new Date().toISOString();
+      document.getElementById('field-lot').value              = prizeName;
+      document.getElementById('field-ts').value               = new Date().toISOString();
       document.getElementById('prize-recap-name').textContent = prizeName;
       const fs = document.getElementById('form-section');
-      if (fs) { fs.style.display = ''; fs.scrollIntoView({ behavior: 'smooth' }); }
+      if (fs) {
+        fs.style.display = '';
+        fs.scrollIntoView({ behavior: 'smooth' });
+      }
     };
   } else {
-    prizeEl.textContent     = 'Pas de chance…';
-    subEl.textContent       = 'Merci d\'avoir participé ! On se retrouve à la prochaine édition du Cybertour.';
-    ctaBtn.style.display    = 'none';
-    closeBtn.textContent    = 'Fermer';
-    closeBtn.style.display  = '';
-    closeBtn.onclick        = () => overlay.classList.remove('active');
+    prizeEl.textContent    = 'Pas de chance…';
+    subEl.textContent      = 'Merci d\'avoir participé ! On se retrouve à la prochaine édition du Cybertour.';
+    ctaBtn.style.display   = 'none';
+    closeBtn.textContent   = 'Fermer';
+    closeBtn.style.display = '';
+    closeBtn.onclick       = () => overlay.classList.remove('active');
   }
 
   overlay.classList.add('active');
