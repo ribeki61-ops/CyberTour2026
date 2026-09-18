@@ -9,7 +9,7 @@ const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1550264500526121013/9V
 
 // ── Supabase ──────────────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://vcuiksxvcibdlabvceyp.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_GE53TTtidaDI_x-TlRVg-w_y1mkt9JV';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjdWlrc3h2Y2liZGxhYnZjZXlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3MTEwODIsImV4cCI6MjEwNTI4NzA4Mn0.A33SsZEqM7N6k0Iyyvx3auwudwf-yonAvK3jJ0oanKY';
 const BUCKET       = 'cybertour-selfies';
 // ─────────────────────────────────────────────────────────────────────────────
 
