@@ -1,259 +1,177 @@
 /**
  * CYBERTOUR 2026 — wheel.js
- * Roulette canvas — sans emojis, DA sobre
+ * 1 chance sur 5 (20% win)
  */
 
-import { setPlayed, hasPlayed, getResult } from './storage.js';
-
-export const PRIZES = [
-  { key: 'tshirt',   name: 'T-Shirt Cybertour',    short: 'T-SHIRT',        color: '#13181f', text: '#93c5fd', prob: 18 },
-  { key: 'usb',      name: 'Clé USB 32 Go',         short: 'CLÉ USB',         color: '#0d1520', text: '#6ee7b7', prob: 18 },
-  { key: 'stickers', name: 'Pack Stickers ×10',     short: 'STICKERS',        color: '#141018', text: '#c4b5fd', prob: 20 },
-  { key: 'jackpot',  name: 'Sweat Cybertour',       short: 'JACKPOT',         color: '#0c1530', text: '#60a5fa', prob: 5  },
-  { key: 'vip',      name: 'Accès VIP session +',   short: 'ACCÈS VIP',       color: '#0f1a14', text: '#86efac', prob: 10 },
-  { key: 'badge',    name: 'Badge collector 2026',  short: 'BADGE',           color: '#1a1408', text: '#fcd34d', prob: 14 },
-  { key: 'respin',   name: 'Nouvelle chance',       short: 'REJOUER',         color: '#181820', text: '#e2e8f0', prob: 10 },
-  { key: 'noluck',   name: 'Hors lot',              short: 'HORS LOT',        color: '#12100e', text: '#64748b', prob: 5  },
+// ── Segments : 2 gagnants / 10 total ────────────────
+const SEGMENTS = [
+  { label: 'T-Shirt\nCybertour',  prize: true,  color: '#1d4ed8', text: '#ffffff' },
+  { label: 'Pas de\nlot',         prize: false, color: '#18181b', text: '#3f3f46' },
+  { label: 'Pas de\nlot',         prize: false, color: '#27272a', text: '#3f3f46' },
+  { label: 'Pas de\nlot',         prize: false, color: '#18181b', text: '#3f3f46' },
+  { label: 'Clé USB\n32 Go',      prize: true,  color: '#2563eb', text: '#ffffff' },
+  { label: 'Pas de\nlot',         prize: false, color: '#27272a', text: '#3f3f46' },
+  { label: 'Pas de\nlot',         prize: false, color: '#18181b', text: '#3f3f46' },
+  { label: 'Pas de\nlot',         prize: false, color: '#27272a', text: '#3f3f46' },
+  { label: 'Pas de\nlot',         prize: false, color: '#18181b', text: '#3f3f46' },
+  { label: 'Pas de\nlot',         prize: false, color: '#27272a', text: '#3f3f46' },
 ];
 
-const TAU      = Math.PI * 2;
-const SEG_A    = TAU / PRIZES.length;
-const DURATION = 5200;
+const N   = SEGMENTS.length;
+const ARC = (2 * Math.PI) / N;
 
-let canvas, ctx, angle = 0, spinning = false;
+let currentAngle = 0;
+let spinning     = false;
+let canvas, ctx;
 
-export function initWheel() {
-  canvas = document.getElementById('wheelCanvas');
-  if (!canvas) return;
-  ctx = canvas.getContext('2d');
-  resize();
+// ── Dessin ───────────────────────────────────────────
+function draw() {
+  const cx = canvas.width  / 2;
+  const cy = canvas.height / 2;
+  const r  = cx - 4;
 
-  if (hasPlayed()) { showAlreadyPlayed(); return; }
-  // Le listener click est attaché dans game.html après vérification caméra
-}
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-function resize() {
-  const size = Math.min(440, window.innerWidth * 0.92);
-  const dpr  = Math.min(window.devicePixelRatio || 1, 2);
-  canvas.width  = size * dpr;
-  canvas.height = size * dpr;
-  canvas.style.width  = size + 'px';
-  canvas.style.height = size + 'px';
-  ctx.scale(dpr, dpr);
-  draw(angle);
-}
+  SEGMENTS.forEach((seg, i) => {
+    const start = currentAngle + i * ARC;
+    const end   = start + ARC;
 
-// ── Dessin ────────────────────────────────────────────────────
-
-function draw(rot) {
-  const W  = canvas.width  / Math.min(window.devicePixelRatio || 1, 2);
-  const H  = canvas.height / Math.min(window.devicePixelRatio || 1, 2);
-  const cx = W / 2;
-  const cy = H / 2;
-  const R  = Math.min(W, H) / 2 - 4;
-
-  ctx.clearRect(0, 0, W, H);
-
-  // Fond roue
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(cx, cy, R, 0, TAU);
-  ctx.fillStyle = '#0a0b0f';
-  ctx.fill();
-  ctx.restore();
-
-  PRIZES.forEach((p, i) => {
-    const a0 = rot + i * SEG_A - TAU / 4;
-    const a1 = a0 + SEG_A;
-    const am = a0 + SEG_A / 2;
-
-    // Fond segment
-    ctx.save();
+    // Secteur
     ctx.beginPath();
     ctx.moveTo(cx, cy);
-    ctx.arc(cx, cy, R - 1, a0, a1);
+    ctx.arc(cx, cy, r, start, end);
     ctx.closePath();
-    ctx.fillStyle = p.color;
+    ctx.fillStyle   = seg.color;
     ctx.fill();
-
-    // Séparateur
-    ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.arc(cx, cy, R - 1, a0, a1);
-    ctx.closePath();
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = '#09090b';
+    ctx.lineWidth   = 2;
     ctx.stroke();
-    ctx.restore();
-
-    // Arc de couleur externe
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(cx, cy, R - 2, a0 + 0.03, a1 - 0.03);
-    ctx.strokeStyle = p.text;
-    ctx.lineWidth   = 3;
-    ctx.globalAlpha = 0.45;
-    ctx.stroke();
-    ctx.restore();
 
     // Texte
     ctx.save();
     ctx.translate(cx, cy);
-    ctx.rotate(am);
-
-    const fs   = Math.round(R * 0.072);
-    const dist = R * 0.62;
-
-    ctx.font         = `700 ${fs}px 'Syne', 'Inter', sans-serif`;
-    ctx.fillStyle    = p.text;
-    ctx.textAlign    = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.globalAlpha  = 0.95;
-
-    const maxChars = 9;
-    const label = p.short.length > maxChars ? p.short.slice(0, maxChars) + '.' : p.short;
-    ctx.fillText(label, dist, 0);
+    ctx.rotate(start + ARC / 2);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = seg.text;
+    const fSize   = Math.max(10, Math.round(r * 0.085));
+    ctx.font      = `600 ${fSize}px 'Inter', sans-serif`;
+    seg.label.split('\n').forEach((line, li, arr) => {
+      const lh   = fSize + 3;
+      const yOff = -(arr.length - 1) * lh / 2;
+      ctx.fillText(line, r - 14, yOff + li * lh + fSize * 0.35);
+    });
     ctx.restore();
   });
 
-  // Anneau externe
-  ctx.save();
+  // Cercle centre
   ctx.beginPath();
-  ctx.arc(cx, cy, R, 0, TAU);
-  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-  ctx.lineWidth   = 1;
-  ctx.stroke();
-  ctx.restore();
-
-  // Centre
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(cx, cy, R * 0.16, 0, TAU);
-  ctx.fillStyle = '#09090b';
+  ctx.arc(cx, cy, 28, 0, 2 * Math.PI);
+  ctx.fillStyle   = '#09090b';
   ctx.fill();
-  ctx.beginPath();
-  ctx.arc(cx, cy, R * 0.16, 0, TAU);
-  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-  ctx.lineWidth   = 1;
+  ctx.strokeStyle = '#2563eb';
+  ctx.lineWidth   = 3;
   ctx.stroke();
-  ctx.restore();
 }
 
-// ── Spin déclenché depuis verify.js via dispatchEvent ─────────
+// ── Init ─────────────────────────────────────────────
+export function initWheel() {
+  canvas = document.getElementById('wheelCanvas');
+  if (!canvas) return;
+  ctx    = canvas.getContext('2d');
 
+  const size      = Math.min(360, window.innerWidth - 32);
+  canvas.width    = size;
+  canvas.height   = size;
+
+  draw();
+
+  // Déjà joué ?
+  const stored = localStorage.getItem('ct26_done');
+  if (stored) {
+    document.getElementById('already-played')?.style.setProperty('display', 'block');
+    document.getElementById('wheel-wrap')?.style.setProperty('pointer-events', 'none');
+  }
+}
+
+// ── Spin ─────────────────────────────────────────────
 export function triggerSpin() {
-  if (spinning || hasPlayed()) return;
-
+  if (spinning) return;
   spinning = true;
-  const btn = document.getElementById('wheel-center-btn');
-  if (btn) { btn.disabled = true; btn.textContent = '…'; }
 
-  const winner  = pickPrize();
-  const prize   = PRIZES[winner];
-  const turns   = (Math.floor(Math.random() * 3) + 6) * TAU;
-  const offset  = -(winner * SEG_A) - SEG_A / 2;
-  const target  = angle + turns + offset - (angle % TAU);
-  const dur     = DURATION + (Math.random() * 1200 - 600);
-  const t0      = performance.now();
+  const centerBtn = document.getElementById('wheel-center-btn');
+  if (centerBtn) centerBtn.disabled = true;
 
-  if (navigator.vibrate) navigator.vibrate([15, 60, 15]);
+  // Tirage : 20% win
+  const isWin = Math.random() < 0.20;
 
-  const frame = (now) => {
-    const p = Math.min((now - t0) / dur, 1);
-    const e = easeOutCubic(p);
-    angle    = angle + (target - angle) * e;
-    draw(angle);
+  const pool  = SEGMENTS
+    .map((s, i) => ({ ...s, i }))
+    .filter(s => s.prize === isWin);
+  const pick  = pool[Math.floor(Math.random() * pool.length)];
 
-    if (p < 1) {
-      requestAnimationFrame(frame);
-    } else {
-      angle    = target % TAU;
-      spinning = false;
-      setPlayed(prize);
-      draw(angle);
-      setTimeout(() => showResult(prize), 350);
-      if (prize.key !== 'noluck' && prize.key !== 'respin') {
-        import('./confetti.js').then(m => m.launch());
-      }
-      if (prize.key === 'respin') {
-        setTimeout(() => doRespin(), 3000);
-      }
-    }
-  };
+  // Angle d'arrivée au milieu du segment sélectionné
+  const targetCenter = pick.i * ARC + ARC / 2;
+  const spins        = 6 * 2 * Math.PI;
+  const finalAngle   = -(targetCenter + spins);
 
-  requestAnimationFrame(frame);
+  animate(currentAngle, finalAngle, 5500, () => {
+    currentAngle = finalAngle % (2 * Math.PI);
+    spinning     = false;
+    localStorage.setItem('ct26_done', '1');
+    showResult(pick);
+  });
 }
 
-function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
-
-function pickPrize() {
-  const total = PRIZES.reduce((s, p) => s + p.prob, 0);
-  let r = Math.random() * total, c = 0;
-  for (let i = 0; i < PRIZES.length; i++) { c += PRIZES[i].prob; if (r <= c) return i; }
-  return PRIZES.length - 1;
+// ── Animation easeOut ────────────────────────────────
+function animate(from, to, duration, done) {
+  const t0 = performance.now();
+  (function frame(now) {
+    const p  = Math.min(1, (now - t0) / duration);
+    const e  = 1 - Math.pow(1 - p, 4);
+    currentAngle = from + (to - from) * e;
+    draw();
+    p < 1 ? requestAnimationFrame(frame) : done();
+  })(performance.now());
 }
 
-// ── Overlay résultat ──────────────────────────────────────────
+// ── Modal résultat ───────────────────────────────────
+function showResult(seg) {
+  const overlay  = document.getElementById('result-overlay');
+  const prizeEl  = document.getElementById('result-prize');
+  const subEl    = document.getElementById('result-sub');
+  const ctaBtn   = document.getElementById('result-cta');
+  const closeBtn = document.getElementById('result-close');
+  if (!overlay) return;
 
-function showResult(prize) {
-  const overlay = document.getElementById('result-overlay');
-  const name    = document.getElementById('result-prize');
-  const sub     = document.getElementById('result-sub');
-  const cta     = document.getElementById('result-cta');
+  const prizeName = seg.label.replace('\n', ' ');
 
-  if (name) name.textContent = prize.name;
-
-  if (sub) {
-    if      (prize.key === 'noluck')  sub.textContent = 'Merci pour ta participation.';
-    else if (prize.key === 'respin')  sub.textContent = 'Nouvelle tentative dans quelques secondes…';
-    else                              sub.textContent = 'Remplis le formulaire pour récupérer ton lot.';
-  }
-
-  if (cta) {
-    if (prize.key === 'noluck') {
-      cta.textContent = 'Fermer';
-      cta.onclick = () => overlay.classList.remove('active');
-    } else if (prize.key === 'respin') {
-      cta.textContent = 'Rejouer';
-      cta.onclick = () => { overlay.classList.remove('active'); doRespin(); };
-    } else {
-      cta.textContent = 'Renseigner mes informations';
-      cta.onclick = () => scrollToForm(prize);
+  if (seg.prize) {
+    if (window.confetti) {
+      confetti({ particleCount: 130, spread: 80, origin: { y: 0.6 } });
     }
+    prizeEl.textContent     = prizeName;
+    subEl.textContent       = 'Félicitations ! Renseignez vos coordonnées pour récupérer votre lot au stand.';
+    ctaBtn.textContent      = 'Remplir mes coordonnées';
+    ctaBtn.style.display    = '';
+    closeBtn.style.display  = 'none';
+
+    ctaBtn.onclick = () => {
+      overlay.classList.remove('active');
+      // Pré-remplir + afficher formulaire
+      document.getElementById('field-lot').value          = prizeName;
+      document.getElementById('field-ts').value           = new Date().toISOString();
+      document.getElementById('prize-recap-name').textContent = prizeName;
+      const fs = document.getElementById('form-section');
+      if (fs) { fs.style.display = ''; fs.scrollIntoView({ behavior: 'smooth' }); }
+    };
+  } else {
+    prizeEl.textContent     = 'Pas de chance…';
+    subEl.textContent       = 'Merci d\'avoir participé ! On se retrouve à la prochaine édition du Cybertour.';
+    ctaBtn.style.display    = 'none';
+    closeBtn.textContent    = 'Fermer';
+    closeBtn.style.display  = '';
+    closeBtn.onclick        = () => overlay.classList.remove('active');
   }
 
-  document.getElementById('result-close')?.addEventListener('click', () => overlay.classList.remove('active'), { once: true });
   overlay.classList.add('active');
-}
-
-function scrollToForm(prize) {
-  document.getElementById('result-overlay')?.classList.remove('active');
-  document.dispatchEvent(new CustomEvent('wheel:prize', { detail: prize }));
-  document.getElementById('form-section')?.scrollIntoView({ behavior: 'smooth' });
-}
-
-function showAlreadyPlayed() {
-  const el     = document.getElementById('already-played');
-  const stored = getResult();
-
-  if (el) {
-    if (stored) {
-      const n = el.querySelector('.already-prize-name');
-      if (n) n.textContent = stored.name;
-    }
-    el.classList.add('active');
-  }
-
-  const btn = document.getElementById('wheel-center-btn');
-  if (btn) btn.disabled = true;
-}
-
-function doRespin() {
-  sessionStorage.removeItem('ct26_played');
-  sessionStorage.removeItem('ct26_result');
-  const btn = document.getElementById('wheel-center-btn');
-  if (btn) { btn.disabled = false; btn.textContent = 'LANCER'; }
-  spinning = false;
-  document.getElementById('result-overlay')?.classList.remove('active');
-  btn?.addEventListener('click', () => { if (!spinning) triggerSpin(); }, { once: true });
 }
