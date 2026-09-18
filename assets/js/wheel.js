@@ -130,35 +130,30 @@ function showResult(seg, isWin) {
   const overlay  = document.getElementById('result-overlay');
   const prizeEl  = document.getElementById('result-prize');
   const subEl    = document.getElementById('result-sub');
-  const ctaBtn   = document.getElementById('result-cta');
   const closeBtn = document.getElementById('result-close');
-  if (!overlay) return;
+
+  // Sécurité : si un élément manque on s'arrête
+  if (!overlay || !prizeEl || !subEl || !closeBtn) {
+    console.error('showResult : éléments manquants dans le DOM');
+    return;
+  }
 
   const prizeName = seg.label.replace('\n', ' ');
-
-  // Reset boutons
-  ctaBtn.style.display   = 'none';
-  closeBtn.style.display = 'none';
 
   if (isWin) {
     if (window.confetti) {
       confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
       setTimeout(() => confetti({ particleCount: 80, spread: 60, origin: { y: 0.5 } }), 700);
     }
-    prizeEl.textContent    = '🎉 ' + prizeName;
-    // Coordonnées déjà en BDD — on rassure et on dit qu'on contacte
-    subEl.textContent      = 'Félicitations ! Nous avons bien vos coordonnées et nous vous contacterons pour vous remettre votre lot.';
-    closeBtn.textContent   = 'Fermer';
-    closeBtn.style.display = 'inline-flex';
-    closeBtn.onclick       = () => overlay.classList.remove('active');
-
+    prizeEl.textContent = '🎉 ' + prizeName;
+    subEl.textContent   = 'Félicitations ! Nous avons vos coordonnées et nous vous contacterons pour vous remettre votre lot.';
   } else {
-    prizeEl.textContent    = 'Pas de chance…';
-    subEl.textContent      = 'À l\'année prochaine ! Merci d\'avoir participé au Cybertour 2026.';
-    closeBtn.textContent   = 'Fermer';
-    closeBtn.style.display = 'inline-flex';
-    closeBtn.onclick       = () => overlay.classList.remove('active');
+    prizeEl.textContent = 'Pas de chance…';
+    subEl.textContent   = 'Dommage ! Peut-être à un prochain événement Cybertour. Merci d\'avoir participé !';
   }
+
+  closeBtn.textContent = 'Fermer';
+  closeBtn.onclick     = () => overlay.classList.remove('active');
 
   overlay.classList.add('active');
 }
