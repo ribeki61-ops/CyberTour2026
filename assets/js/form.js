@@ -15,7 +15,7 @@ export function initForm() {
 
     const submitBtn = document.querySelector('.btn-submit');
     submitBtn.disabled = true;
-    submitBtn.querySelector('.btn-text').textContent = 'Envoi en cours…';
+    submitBtn.classList.add('loading');
 
     const data = {
       prenom: document.getElementById('f-prenom').value.trim(),
@@ -31,37 +31,50 @@ export function initForm() {
   });
 }
 
-// ── Validation ───────────────────────────────────────
+function setError(input, msg) {
+  const err = input.nextElementSibling;
+  input.classList.add('err');
+  input.classList.remove('ok');
+  if (err && err.classList.contains('field-error')) {
+    err.textContent = msg;
+    err.classList.add('active');
+  }
+}
+
+function clearError(input) {
+  const err = input.nextElementSibling;
+  input.classList.remove('err');
+  input.classList.add('ok');
+  if (err && err.classList.contains('field-error')) {
+    err.textContent = '';
+    err.classList.remove('active');
+  }
+}
+
 function validate() {
   let ok = true;
 
-  // Champs texte requis
-  [{ id: 'f-prenom', msg: 'Prénom requis' }, { id: 'f-nom', msg: 'Nom requis' }]
-    .forEach(({ id, msg }) => {
-      const el  = document.getElementById(id);
-      const err = el.nextElementSibling;
-      if (!el.value.trim()) { err.textContent = msg; el.classList.add('invalid'); ok = false; }
-      else                  { err.textContent = '';  el.classList.remove('invalid'); }
-    });
+  const prenom = document.getElementById('f-prenom');
+  if (!prenom.value.trim()) { setError(prenom, 'Prénom requis'); ok = false; }
+  else clearError(prenom);
 
-  // Email
-  const em  = document.getElementById('f-email');
-  const emE = em.nextElementSibling;
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em.value.trim())) {
-    emE.textContent = 'Adresse email invalide'; em.classList.add('invalid'); ok = false;
-  } else { emE.textContent = ''; em.classList.remove('invalid'); }
+  const nom = document.getElementById('f-nom');
+  if (!nom.value.trim()) { setError(nom, 'Nom requis'); ok = false; }
+  else clearError(nom);
 
-  // Téléphone
-  const tel  = document.getElementById('f-tel');
-  const telE = tel.nextElementSibling;
+  const email = document.getElementById('f-email');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) {
+    setError(email, 'Email invalide'); ok = false;
+  } else clearError(email);
+
+  const tel = document.getElementById('f-tel');
   if (!/^[\d\s\+\-\.]{8,16}$/.test(tel.value.replace(/\s/g, ''))) {
-    telE.textContent = 'Numéro invalide'; tel.classList.add('invalid'); ok = false;
-  } else { telE.textContent = ''; tel.classList.remove('invalid'); }
+    setError(tel, 'Numéro invalide'); ok = false;
+  } else clearError(tel);
 
   return ok;
 }
 
-// ── Envoi Discord ────────────────────────────────────
 async function sendToDiscord(data) {
   const body = {
     embeds: [{
