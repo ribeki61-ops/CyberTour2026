@@ -105,9 +105,7 @@ export function triggerSpin() {
   });
   const targetIdx    = candidats[Math.floor(Math.random() * candidats.length)];
   const targetCenter = targetIdx * ARC + ARC / 2;
-
-  // Pointeur en HAUT → offset −π/2
-  const finalAngle = -(Math.PI / 2 + targetCenter + 7 * 2 * Math.PI);
+  const finalAngle   = -(Math.PI / 2 + targetCenter + 7 * 2 * Math.PI);
 
   animate(currentAngle, finalAngle, 5500, () => {
     currentAngle = finalAngle % (2 * Math.PI);
@@ -138,6 +136,7 @@ function showResult(seg, isWin) {
 
   const prizeName = seg.label.replace('\n', ' ');
 
+  // Reset boutons
   ctaBtn.style.display   = 'none';
   closeBtn.style.display = 'none';
 
@@ -146,37 +145,20 @@ function showResult(seg, isWin) {
       confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
       setTimeout(() => confetti({ particleCount: 80, spread: 60, origin: { y: 0.5 } }), 700);
     }
-    prizeEl.textContent  = prizeName;
-    subEl.textContent    = 'Félicitations ! Renseignez vos coordonnées pour récupérer votre lot au stand.';
-    ctaBtn.textContent   = 'Remplir mes coordonnées';
-    ctaBtn.style.display = 'inline-flex';
-    ctaBtn.onclick       = () => afficherFormulaire(prizeName);
+    prizeEl.textContent    = '🎉 ' + prizeName;
+    // Coordonnées déjà en BDD — on rassure et on dit qu'on contacte
+    subEl.textContent      = 'Félicitations ! Nous avons bien vos coordonnées et nous vous contacterons pour vous remettre votre lot.';
+    closeBtn.textContent   = 'Fermer';
+    closeBtn.style.display = 'inline-flex';
+    closeBtn.onclick       = () => overlay.classList.remove('active');
+
   } else {
     prizeEl.textContent    = 'Pas de chance…';
-    subEl.textContent      = 'Merci d\'avoir participé ! On se retrouve à la prochaine édition du Cybertour.';
+    subEl.textContent      = 'À l\'année prochaine ! Merci d\'avoir participé au Cybertour 2026.';
     closeBtn.textContent   = 'Fermer';
     closeBtn.style.display = 'inline-flex';
     closeBtn.onclick       = () => overlay.classList.remove('active');
   }
 
   overlay.classList.add('active');
-}
-
-function afficherFormulaire(prizeName) {
-  const overlay = document.getElementById('result-overlay');
-  if (overlay) overlay.classList.remove('active');
-
-  const lotField = document.getElementById('field-lot');
-  const tsField  = document.getElementById('field-ts');
-  const recap    = document.getElementById('prize-recap-name');
-  if (lotField) lotField.value    = prizeName;
-  if (tsField)  tsField.value     = new Date().toISOString();
-  if (recap)    recap.textContent = prizeName;
-
-  // Le CSS gère display:none → display:flex via .active
-  const fs = document.getElementById('form-section');
-  if (fs) {
-    fs.classList.add('active');
-    setTimeout(() => fs.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
-  }
 }
