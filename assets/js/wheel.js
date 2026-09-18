@@ -1,21 +1,21 @@
 /**
  * CYBERTOUR 2026 — wheel.js
- * 1 chance sur 5 (20%) — 6 lots visibles + 6 "Pas de lot" intercalés
+ * 1 chance sur 5 (20%) — sessionStorage (reset au refresh)
  */
 
 const SEGMENTS = [
-  { label: 'T-Shirt\nCybertour',    prize: true,  color: '#1d4ed8', text: '#ffffff' },
-  { label: 'Pas de\nlot',           prize: false, color: '#18181b', text: '#3f3f46' },
-  { label: 'Clé USB\n32 Go',        prize: true,  color: '#2563eb', text: '#ffffff' },
-  { label: 'Pas de\nlot',           prize: false, color: '#27272a', text: '#3f3f46' },
-  { label: 'Pack\nStickers ×10',    prize: true,  color: '#1e40af', text: '#ffffff' },
-  { label: 'Pas de\nlot',           prize: false, color: '#18181b', text: '#3f3f46' },
-  { label: 'Sweat\nCybertour',      prize: true,  color: '#1d4ed8', text: '#ffffff' },
-  { label: 'Pas de\nlot',           prize: false, color: '#27272a', text: '#3f3f46' },
-  { label: 'Accès VIP\nLab-Cyber',  prize: true,  color: '#1e40af', text: '#ffffff' },
-  { label: 'Pas de\nlot',           prize: false, color: '#18181b', text: '#3f3f46' },
-  { label: 'Badge\nCollector',      prize: true,  color: '#2563eb', text: '#ffffff' },
-  { label: 'Pas de\nlot',           prize: false, color: '#27272a', text: '#3f3f46' },
+  { label: 'T-Shirt\nCybertour',   prize: true,  color: '#1d4ed8', text: '#ffffff' },
+  { label: 'Pas de\nlot',          prize: false, color: '#18181b', text: '#3f3f46' },
+  { label: 'Clé USB\n32 Go',       prize: true,  color: '#2563eb', text: '#ffffff' },
+  { label: 'Pas de\nlot',          prize: false, color: '#27272a', text: '#3f3f46' },
+  { label: 'Pack\nStickers ×10',   prize: true,  color: '#1e40af', text: '#ffffff' },
+  { label: 'Pas de\nlot',          prize: false, color: '#18181b', text: '#3f3f46' },
+  { label: 'Sweat\nCybertour',     prize: true,  color: '#1d4ed8', text: '#ffffff' },
+  { label: 'Pas de\nlot',          prize: false, color: '#27272a', text: '#3f3f46' },
+  { label: 'Accès VIP\nLab-Cyber', prize: true,  color: '#1e40af', text: '#ffffff' },
+  { label: 'Pas de\nlot',          prize: false, color: '#18181b', text: '#3f3f46' },
+  { label: 'Badge\nCollector',     prize: true,  color: '#2563eb', text: '#ffffff' },
+  { label: 'Pas de\nlot',          prize: false, color: '#27272a', text: '#3f3f46' },
 ];
 
 const N   = SEGMENTS.length;
@@ -37,7 +37,6 @@ function draw() {
     const start = currentAngle + i * ARC;
     const end   = start + ARC;
 
-    // Secteur
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.arc(cx, cy, r, start, end);
@@ -48,7 +47,6 @@ function draw() {
     ctx.lineWidth   = 2;
     ctx.stroke();
 
-    // Texte
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate(start + ARC / 2);
@@ -87,8 +85,8 @@ export function initWheel() {
 
   draw();
 
-  // Déjà joué ?
-  if (localStorage.getItem('ct26_done')) {
+  // sessionStorage → reset automatiquement au refresh / fermeture onglet
+  if (sessionStorage.getItem('ct26_done')) {
     const ap = document.getElementById('already-played');
     if (ap) ap.style.display = 'block';
     const ww = document.getElementById('wheel-wrap');
@@ -104,24 +102,24 @@ export function triggerSpin() {
   const centerBtn = document.getElementById('wheel-center-btn');
   if (centerBtn) centerBtn.disabled = true;
 
-  // Tirage pondéré : 20% win, 80% lose
+  // Tirage : 20% win — déterminé UNE SEULE FOIS ici
   const isWin = Math.random() < 0.20;
 
-  const pool  = SEGMENTS
-    .map((s, i) => ({ ...s, i }))
-    .filter(s => s.prize === isWin);
-  const pick  = pool[Math.floor(Math.random() * pool.length)];
-
-  // Angle cible : milieu du segment choisi
-  const targetCenter = pick.i * ARC + ARC / 2;
-  const spins        = 7 * 2 * Math.PI;
-  const finalAngle   = -(targetCenter + spins);
+  // On choisit l'index du segment à pointer
+  const candidats = [];
+  SEGMENTS.forEach((seg, i) => {
+    if (seg.prize === isWin) candidats.push(i);
+  });
+  const targetIdx    = candidats[Math.floor(Math.random() * candidats.length)];
+  const targetCenter = targetIdx * ARC + ARC / 2;
+  const finalAngle   = -(targetCenter + 7 * 2 * Math.PI);
 
   animate(currentAngle, finalAngle, 5500, () => {
     currentAngle = finalAngle % (2 * Math.PI);
     spinning     = false;
-    localStorage.setItem('ct26_done', '1');
-    showResult(pick);
+    sessionStorage.setItem('ct26_done', '1');
+    // On passe isWin explicitement — pas de relecture depuis seg.prize
+    showResult(SEGMENTS[targetIdx], isWin);
   });
 }
 
@@ -138,7 +136,8 @@ function animate(from, to, duration, done) {
 }
 
 // ── Modal résultat ───────────────────────────────────
-function showResult(seg) {
+// isWin est passé explicitement pour éviter tout problème de lecture sur seg
+function showResult(seg, isWin) {
   const overlay  = document.getElementById('result-overlay');
   const prizeEl  = document.getElementById('result-prize');
   const subEl    = document.getElementById('result-sub');
@@ -148,16 +147,19 @@ function showResult(seg) {
 
   const prizeName = seg.label.replace('\n', ' ');
 
-  if (seg.prize) {
+  // Reset des boutons à chaque appel
+  ctaBtn.style.display   = 'none';
+  closeBtn.style.display = 'none';
+
+  if (isWin) {
     if (window.confetti) {
       confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
-      setTimeout(() => confetti({ particleCount: 80, spread: 60, origin: { y: 0.5 } }), 600);
+      setTimeout(() => confetti({ particleCount: 80, spread: 60, origin: { y: 0.5 } }), 700);
     }
-    prizeEl.textContent    = prizeName;
-    subEl.textContent      = 'Félicitations ! Renseignez vos coordonnées pour récupérer votre lot au stand.';
-    ctaBtn.textContent     = 'Remplir mes coordonnées';
-    ctaBtn.style.display   = '';
-    closeBtn.style.display = 'none';
+    prizeEl.textContent  = prizeName;
+    subEl.textContent    = 'Félicitations ! Renseignez vos coordonnées pour récupérer votre lot au stand.';
+    ctaBtn.textContent   = 'Remplir mes coordonnées';
+    ctaBtn.style.display = '';
 
     ctaBtn.onclick = () => {
       overlay.classList.remove('active');
@@ -170,10 +172,10 @@ function showResult(seg) {
         fs.scrollIntoView({ behavior: 'smooth' });
       }
     };
+
   } else {
     prizeEl.textContent    = 'Pas de chance…';
     subEl.textContent      = 'Merci d\'avoir participé ! On se retrouve à la prochaine édition du Cybertour.';
-    ctaBtn.style.display   = 'none';
     closeBtn.textContent   = 'Fermer';
     closeBtn.style.display = '';
     closeBtn.onclick       = () => overlay.classList.remove('active');
