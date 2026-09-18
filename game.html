@@ -13,7 +13,6 @@
   <link rel="stylesheet" href="assets/css/game.css">
   <link rel="stylesheet" href="assets/css/verify.css">
 
-  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 </head>
 <body>
@@ -174,97 +173,77 @@
 
 
   <!-- ── Formulaire ─────────────────────────────────────── -->
-  <section class="form-section" id="form-section">
-    <div class="container" style="display:flex;flex-direction:column;align-items:center;gap:var(--s8);max-width:560px;">
 
-      <div class="section-header text-center">
-        <p class="section-label">Récupération du lot</p>
-        <h2 class="section-title">Vos coordonnées</h2>
-        <p class="section-sub text-muted">
-          Ces informations permettent à l'équipe de vous remettre votre lot sur place.
-        </p>
+<section class="form-section" id="form-section" style="display:none;">
+  <div class="container" style="display:flex;flex-direction:column;align-items:center;gap:var(--s8);max-width:560px;">
+
+    <div class="section-header text-center">
+      <p class="section-label">Récupération du lot</p>
+      <h2 class="section-title">Vos coordonnées</h2>
+      <p class="section-sub text-muted">
+        Ces informations permettent à l'équipe de vous remettre votre lot sur place.
+      </p>
+    </div>
+
+    <div class="prize-recap">
+      <div class="prize-recap__line"></div>
+      <div class="prize-recap__info">
+        <div class="prize-recap__label">Votre lot</div>
+        <div class="prize-recap__name" id="prize-recap-name">—</div>
       </div>
+    </div>
 
-      <!-- Récap lot -->
-      <div class="prize-recap">
-        <div class="prize-recap__line"></div>
-        <div class="prize-recap__info">
-          <div class="prize-recap__label">Votre lot</div>
-          <div class="prize-recap__name" id="prize-recap-name">—</div>
-        </div>
-      </div>
+    <div class="form-card">
+      <div class="form-card__inner">
+        <form id="registration-form" novalidate>
+          <input type="hidden" id="field-lot" name="lot">
+          <input type="hidden" id="field-ts"  name="ts">
 
-      <!-- Formulaire -->
-      <div class="form-card">
-        <div class="form-card__inner">
-          <form id="registration-form" novalidate>
-            <input type="hidden" id="field-lot"  name="lot">
-            <input type="hidden" id="field-ts"   name="ts">
-            <input type="hidden" id="field-fp"   name="fp">
+          <div class="form-grid" style="gap:var(--s4);margin-bottom:var(--s4);">
 
-            <div class="form-grid" style="gap:var(--s4);margin-bottom:var(--s4);">
-
-              <div class="field">
-                <label for="f-prenom">Prénom <span class="req">*</span></label>
-                <input type="text"  id="f-prenom" name="prenom" placeholder="Jean"
-                  autocomplete="given-name" data-v="req" required>
-                <span class="field-error"></span>
-              </div>
-
-              <div class="field">
-                <label for="f-nom">Nom <span class="req">*</span></label>
-                <input type="text"  id="f-nom" name="nom" placeholder="Dupont"
-                  autocomplete="family-name" data-v="req" required>
-                <span class="field-error"></span>
-              </div>
-
-              <div class="field field--full">
-                <label for="f-email">Email <span class="req">*</span></label>
-                <input type="email" id="f-email" name="email" placeholder="jean.dupont@entreprise.com"
-                  autocomplete="email" data-v="email" required>
-                <span class="field-error"></span>
-              </div>
-
-              <div class="field field--full">
-                <label for="f-org">Organisation <span class="req">*</span></label>
-                <input type="text"  id="f-org" name="org" placeholder="Acme Corp"
-                  autocomplete="organization" data-v="req" required>
-                <span class="field-error"></span>
-              </div>
-
-              <div class="field">
-                <label for="f-ville">Ville <span class="req">*</span></label>
-                <input type="text"  id="f-ville" name="ville" placeholder="Paris"
-                  autocomplete="address-level2" data-v="req" required>
-                <span class="field-error"></span>
-              </div>
-
+            <div class="field">
+              <label for="f-prenom">Prénom <span class="req">*</span></label>
+              <input type="text" id="f-prenom" name="prenom" placeholder="Jean"
+                     autocomplete="given-name" required>
+              <span class="field-error"></span>
             </div>
 
-            <label class="rgpd-row">
-              <input type="checkbox" name="rgpd" value="oui" data-v="check" required>
-              <span class="rgpd-label">
-                J'accepte que mes coordonnées soient utilisées uniquement pour la remise du lot
-                et supprimées après l'événement.
-              </span>
-            </label>
-            <span class="field-error" id="rgpd-err" style="margin-top:var(--s2);"></span>
+            <div class="field">
+              <label for="f-nom">Nom <span class="req">*</span></label>
+              <input type="text" id="f-nom" name="nom" placeholder="Dupont"
+                     autocomplete="family-name" required>
+              <span class="field-error"></span>
+            </div>
 
-          </form>
-        </div>
+            <div class="field field--full">
+              <label for="f-email">Email <span class="req">*</span></label>
+              <input type="email" id="f-email" name="email" placeholder="jean.dupont@email.com"
+                     autocomplete="email" required>
+              <span class="field-error"></span>
+            </div>
 
-        <div class="form-footer">
-          <button type="submit" form="registration-form" class="btn btn-primary btn-submit">
-            <div class="spinner"></div>
-            <span class="btn-text">Valider et récupérer mon lot</span>
-          </button>
-          <p class="form-note text-muted">Vos données ne sont ni vendues ni partagées.</p>
-        </div>
+            <div class="field field--full">
+              <label for="f-tel">Téléphone <span class="req">*</span></label>
+              <input type="tel" id="f-tel" name="tel" placeholder="06 12 34 56 78"
+                     autocomplete="tel" required>
+              <span class="field-error"></span>
+            </div>
+
+          </div>
+        </form>
       </div>
 
+      <div class="form-footer">
+        <button type="submit" form="registration-form" class="btn btn-primary btn-submit">
+          <div class="spinner"></div>
+          <span class="btn-text">Valider et récupérer mon lot</span>
+        </button>
+        <p class="form-note text-muted">Vos données ne sont ni vendues ni partagées.</p>
+      </div>
     </div>
-  </section>
 
+  </div>
+</section>
 
   <!-- ── Footer ─────────────────────────────────────────── -->
   <footer class="site-footer container">
