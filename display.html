@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cybertour 2026 — Live Wall</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:       #09090b;
+      --surface:  #18181b;
+      --blue:     #2563eb;
+      --blue-dim: rgba(37,99,235,.35);
+      --white:    #ffffff;
+      --muted:    #71717a;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--bg);
+      color: var(--white);
+      font-family: 'Inter', sans-serif;
+      overflow: hidden;
+    }
+
+    /* ─── FOND GRILLE CYBER ─────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(37,99,235,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(37,99,235,.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ─── HEADER ────────────────────────────────────────────────── */
+    .header {
+      position: fixed; top: 0; left: 0; right: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 48px;
+      background: linear-gradient(to bottom, rgba(9,9,11,.97) 60%, transparent);
+      z-index: 200;
+      gap: 24px;
+    }
+
+    .brand {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px; font-weight: 800;
+      letter-spacing: .14em; text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    .brand em { color: var(--blue); font-style: normal; }
+
+    /* Compteur central */
+    .counter-wrap {
+      display: flex; flex-direction: column; align-items: center;
+      flex: 1;
+    }
+    .counter-num {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(52px, 8vw, 100px);
+      font-weight: 800; line-height: 1;
+      transition: transform .25s cubic-bezier(.34,1.56,.64,1), color .25s;
+    }
+    .counter-num.bump { transform: scale(1.15); color: var(--blue); }
+    .counter-label {
+      font-size: 11px; letter-spacing: .18em;
+      text-transform: uppercase; color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* Indicateur LIVE */
+    .live-badge {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--muted);
+      flex-shrink: 0;
+    }
+    .dot {
+      width: 9px; height: 9px; border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 8px #22c55e;
+      animation: blink 1.8s ease-in-out infinite;
+    }
+    @keyframes blink {
+      0%,100% { opacity:1; } 50% { opacity:.3; }
+    }
+
+    /* ─── GRILLE PHOTOS ─────────────────────────────────────────── */
+    .grid-scroll {
+      position: absolute; inset: 0;
+      padding: 110px 20px 20px;
+      overflow-y: auto; overflow-x: hidden;
+      z-index: 1;
+    }
+    .grid-scroll::-webkit-scrollbar { width: 4px; }
+    .grid-scroll::-webkit-scrollbar-thumb { background: var(--surface); border-radius: 2px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 10px;
+    }
+
+    /* Carte photo */
+    .card {
+      position: relative;
+      aspect-ratio: 3/4;
+      border-radius: 10px;
+      overflow: hidden;
+      opacity: 0;
+      animation: appear .55s cubic-bezier(.34,1.56,.64,1) forwards;
+    }
+    .card img {
+      width: 100%; height: 100%;
+      object-fit: cover; display: block;
+    }
+    /* Flash au moment de l'apparition */
+    .card::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: white; opacity: 0;
+      animation: flash .45s ease-out forwards;
+      pointer-events: none;
+    }
+    /* Glow bleu sur les nouvelles cartes */
+    .card.fresh {
+      box-shadow: 0 0 0 2px var(--blue), 0 0 28px var(--blue-dim);
+    }
+
+    @keyframes appear {
+      from { opacity:0; transform: scale(.4) rotate(-6deg); }
+      to   { opacity:1; transform: scale(1)  rotate(0deg); }
+    }
+    @keyframes flash {
+      0%   { opacity:.75; }
+      100% { opacity:0;   }
+    }
+
+    /* Décalage en cascade pour le mode "reveal" */
+    .card:nth-child(1)  { animation-delay: 0s;    }
+    .card:nth-child(2)  { animation-delay: .04s;  }
+    .card:nth-child(3)  { animation-delay: .08s;  }
+    .card:nth-child(4)  { animation-delay: .12s;  }
+    .card:nth-child(5)  { animation-delay: .16s;  }
+    .card:nth-child(6)  { animation-delay: .20s;  }
+    .card:nth-child(7)  { animation-delay: .24s;  }
+    .card:nth-child(8)  { animation-delay: .28s;  }
+    .card:nth-child(9)  { animation-delay: .32s;  }
+    .card:nth-child(10) { animation-delay: .36s;  }
+    .card:nth-child(n+11) { animation-delay: .4s; }
+
+    /* ─── ÉCRAN VIDE ────────────────────────────────────────────── */
+    .empty {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center; z-index: 1;
+    }
+    .empty-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px; color: var(--muted); margin-bottom: 6px;
+    }
+    .empty-sub { font-size: 14px; color: #3f3f46; }
+
+    /* ─── FLASH GLOBAL (nouvelle photo) ────────────────────────── */
+    .screen-flash {
+      position: fixed; inset: 0;
+      background: var(--blue-dim);
+      opacity: 0; pointer-events: none; z-index: 500;
+      transition: opacity .1s;
+    }
+    .screen-flash.on { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<!-- ─ HEADER ─────────────────────────────────────────────────────── -->
+<header class="header">
+  <div class="brand">Cyber<em>Tour</em> <span style="color:var(--muted);font-weight:400">2026</span></div>
+
+  <div class="counter-wrap">
+    <div class="counter-num" id="counter">0</div>
+    <div class="counter-label">participants vérifiés</div>
+  </div>
+
+  <div class="live-badge">
+    <div class="dot"></div>
+    Live
+  </div>
+</header>
+
+<!-- ─ GRILLE ──────────────────────────────────────────────────────── -->
+<div class="grid-scroll">
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- ─ VIDE ───────────────────────────────────────────────────────── -->
+<div class="empty" id="empty">
+  <div class="empty-title">En attente des participants…</div>
+  <div class="empty-sub">Les photos apparaîtront ici en temps réel</div>
+</div>
+
+<!-- Flash global à chaque nouvelle photo -->
+<div class="screen-flash" id="screen-flash"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   CONFIG — remplir avant l'événement
+   ═══════════════════════════════════════════════════════════════════ */
+const SUPABASE_URL = 'https://VOTRE_PROJET.supabase.co';  // ← à remplir
+const SUPABASE_KEY = 'VOTRE_ANON_KEY';                     // ← à remplir
+const BUCKET       = 'cybertour-selfies';
+const POLL_MS      = 3000;   // rafraîchissement toutes les 3 secondes
+/* ═══════════════════════════════════════════════════════════════════ */
+
+const grid      = document.getElementById('grid');
+const counterEl = document.getElementById('counter');
+const emptyEl   = document.getElementById('empty');
+const flashEl   = document.getElementById('screen-flash');
+const displayed = new Set();
+
+/* ── Récupère la liste des fichiers dans le bucket ─────────────── */
+async function fetchPhotos() {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/storage/v1/object/list/${BUCKET}`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prefix:  '',
+          limit:   500,
+          offset:  0,
+          sortBy:  { column: 'created_at', order: 'asc' },
+        }),
+      }
+    );
+    if (!res.ok) return;
+
+    const files = await res.json();
+    if (!Array.isArray(files)) return;
+
+    let hasNew = false;
+    files.forEach(f => {
+      if (!displayed.has(f.name)) {
+        addCard(f.name, /* fresh= */ displayed.size > 0);
+        displayed.add(f.name);
+        hasNew = true;
+      }
+    });
+
+    if (hasNew) {
+      updateCounter();
+      triggerFlash();
+    }
+  } catch (_) {}
+}
+
+/* ── Ajoute une carte photo dans la grille ─────────────────────── */
+function addCard(filename, fresh) {
+  const url  = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${encodeURIComponent(filename)}`;
+  const card = document.createElement('div');
+  card.className = 'card' + (fresh ? ' fresh' : '');
+
+  const img = document.createElement('img');
+  img.src   = url;
+  img.alt   = 'Participant';
+  img.loading = 'lazy';
+
+  // Retire le glow après l'animation
+  if (fresh) setTimeout(() => card.classList.remove('fresh'), 1200);
+
+  card.appendChild(img);
+  grid.prepend(card);   // nouvelles photos en premier
+
+  emptyEl.style.display = 'none';
+}
+
+/* ── Met à jour le compteur avec un petit rebond ───────────────── */
+function updateCounter() {
+  const n = displayed.size;
+  if (parseInt(counterEl.textContent) === n) return;
+  counterEl.textContent = n;
+  counterEl.classList.add('bump');
+  setTimeout(() => counterEl.classList.remove('bump'), 400);
+}
+
+/* ── Flash bleu global ─────────────────────────────────────────── */
+function triggerFlash() {
+  flashEl.classList.add('on');
+  setTimeout(() => flashEl.classList.remove('on'), 150);
+}
+
+/* ── Lancement ─────────────────────────────────────────────────── */
+fetchPhotos();
+setInterval(fetchPhotos, POLL_MS);
+</script>
+</body>
+</html>
