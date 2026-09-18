@@ -66,7 +66,7 @@
         <p class="section-label">Lots à gagner</p>
         <h2 class="section-title">Ce qui est en jeu</h2>
         <p class="section-sub text-muted">
-          Une participation par personne. Tournez la roue, obtenez un lot, récupérez-le au stand !!
+          Une participation par personne. Tournez la roue, obtenez un lot, récupérez-le au stand !
         </p>
       </div>
 
@@ -155,10 +155,9 @@
     </div>
 
     <!-- Déjà joué -->
-    <div class="already-played-notice" id="already-played">
+    <div class="already-played-notice" id="already-played" style="display:none;">
       <p style="font-size: var(--text-sm); color: var(--muted);">Vous avez déjà participé.</p>
       <p style="font-family: var(--font-h); font-size: var(--text-lg); font-weight: 700;" class="already-prize-name">—</p>
-      <a href="confirmation.html" class="btn btn-ghost" style="margin-top: var(--s2);">Voir ma confirmation</a>
     </div>
 
     <!-- Roue -->
@@ -172,78 +171,78 @@
   </section>
 
 
-  <!-- ── Formulaire ─────────────────────────────────────── -->
+  <!-- ── Formulaire (masqué, affiché uniquement si gagné) ── -->
+  <section class="form-section" id="form-section" style="display:none;">
+    <div class="container" style="display:flex;flex-direction:column;align-items:center;gap:var(--s8);max-width:560px;">
 
-<section class="form-section" id="form-section" style="display:none;">
-  <div class="container" style="display:flex;flex-direction:column;align-items:center;gap:var(--s8);max-width:560px;">
-
-    <div class="section-header text-center">
-      <p class="section-label">Récupération du lot</p>
-      <h2 class="section-title">Vos coordonnées</h2>
-      <p class="section-sub text-muted">
-        Ces informations permettent à l'équipe de vous remettre votre lot sur place.
-      </p>
-    </div>
-
-    <div class="prize-recap">
-      <div class="prize-recap__line"></div>
-      <div class="prize-recap__info">
-        <div class="prize-recap__label">Votre lot</div>
-        <div class="prize-recap__name" id="prize-recap-name">—</div>
-      </div>
-    </div>
-
-    <div class="form-card">
-      <div class="form-card__inner">
-        <form id="registration-form" novalidate>
-          <input type="hidden" id="field-lot" name="lot">
-          <input type="hidden" id="field-ts"  name="ts">
-
-          <div class="form-grid" style="gap:var(--s4);margin-bottom:var(--s4);">
-
-            <div class="field">
-              <label for="f-prenom">Prénom <span class="req">*</span></label>
-              <input type="text" id="f-prenom" name="prenom" placeholder="Jean"
-                     autocomplete="given-name" required>
-              <span class="field-error"></span>
-            </div>
-
-            <div class="field">
-              <label for="f-nom">Nom <span class="req">*</span></label>
-              <input type="text" id="f-nom" name="nom" placeholder="Dupont"
-                     autocomplete="family-name" required>
-              <span class="field-error"></span>
-            </div>
-
-            <div class="field field--full">
-              <label for="f-email">Email <span class="req">*</span></label>
-              <input type="email" id="f-email" name="email" placeholder="jean.dupont@email.com"
-                     autocomplete="email" required>
-              <span class="field-error"></span>
-            </div>
-
-            <div class="field field--full">
-              <label for="f-tel">Téléphone <span class="req">*</span></label>
-              <input type="tel" id="f-tel" name="tel" placeholder="06 12 34 56 78"
-                     autocomplete="tel" required>
-              <span class="field-error"></span>
-            </div>
-
-          </div>
-        </form>
+      <div class="section-header text-center">
+        <p class="section-label">Récupération du lot</p>
+        <h2 class="section-title">Vos coordonnées</h2>
+        <p class="section-sub text-muted">
+          Ces informations permettent à l'équipe de vous remettre votre lot sur place.
+        </p>
       </div>
 
-      <div class="form-footer">
-        <button type="submit" form="registration-form" class="btn btn-primary btn-submit">
-          <div class="spinner"></div>
-          <span class="btn-text">Valider et récupérer mon lot</span>
-        </button>
-        <p class="form-note text-muted">Vos données ne sont ni vendues ni partagées.</p>
+      <div class="prize-recap">
+        <div class="prize-recap__line"></div>
+        <div class="prize-recap__info">
+          <div class="prize-recap__label">Votre lot</div>
+          <div class="prize-recap__name" id="prize-recap-name">—</div>
+        </div>
       </div>
-    </div>
 
-  </div>
-</section>
+      <div class="form-card">
+        <div class="form-card__inner">
+          <form id="registration-form" novalidate>
+            <input type="hidden" id="field-lot" name="lot">
+            <input type="hidden" id="field-ts"  name="ts">
+
+            <div class="form-grid" style="gap:var(--s4);margin-bottom:var(--s4);">
+
+              <div class="field">
+                <label for="f-prenom">Prénom <span class="req">*</span></label>
+                <input type="text" id="f-prenom" name="prenom" placeholder="Jean"
+                       autocomplete="given-name" required>
+                <span class="field-error"></span>
+              </div>
+
+              <div class="field">
+                <label for="f-nom">Nom <span class="req">*</span></label>
+                <input type="text" id="f-nom" name="nom" placeholder="Dupont"
+                       autocomplete="family-name" required>
+                <span class="field-error"></span>
+              </div>
+
+              <div class="field field--full">
+                <label for="f-email">Email <span class="req">*</span></label>
+                <input type="email" id="f-email" name="email" placeholder="jean.dupont@email.com"
+                       autocomplete="email" required>
+                <span class="field-error"></span>
+              </div>
+
+              <div class="field field--full">
+                <label for="f-tel">Téléphone <span class="req">*</span></label>
+                <input type="tel" id="f-tel" name="tel" placeholder="06 12 34 56 78"
+                       autocomplete="tel" required>
+                <span class="field-error"></span>
+              </div>
+
+            </div>
+          </form>
+        </div>
+
+        <div class="form-footer">
+          <button type="submit" form="registration-form" class="btn btn-primary btn-submit">
+            <div class="spinner"></div>
+            <span class="btn-text">Valider et récupérer mon lot</span>
+          </button>
+          <p class="form-note text-muted">Vos données ne sont ni vendues ni partagées.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
 
   <!-- ── Footer ─────────────────────────────────────────── -->
   <footer class="site-footer container">
@@ -258,7 +257,6 @@
   <div id="verify-overlay" class="verify-overlay" role="dialog" aria-modal="true" aria-labelledby="verify-title">
     <div class="verify-modal">
 
-      <!-- Tête -->
       <div class="verify-modal__head">
         <h2 class="verify-modal__title" id="verify-title">ES-TU UN ROBOT ?</h2>
         <p class="verify-modal__desc" id="verify-initial">
@@ -267,27 +265,20 @@
         </p>
       </div>
 
-      <!-- Corps -->
       <div class="verify-modal__body">
 
-        <!-- Flux vidéo -->
         <div class="verify-video-wrap" id="verify-video-wrap">
           <video id="verify-video" playsinline muted autoplay aria-label="Aperçu caméra selfie"></video>
-          <!-- Countdown overlay -->
           <div class="verify-countdown" id="verify-countdown" aria-live="assertive"></div>
-          <!-- Flash -->
           <div class="verify-flash"     id="verify-flash"     aria-hidden="true"></div>
         </div>
 
-        <!-- Preview -->
         <div class="verify-preview" id="verify-preview">
           <img id="verify-preview-img" alt="Votre selfie">
         </div>
 
-        <!-- Erreur -->
         <p class="verify-error" id="verify-error" role="alert"></p>
 
-        <!-- Succès -->
         <div class="verify-success" id="verify-success" role="status" aria-live="polite">
           <div class="verify-success__icon">
             <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
@@ -298,7 +289,6 @@
 
       </div>
 
-      <!-- Pied modal -->
       <div class="verify-modal__foot">
         <button id="verify-start-btn" class="btn btn-primary btn-lg" type="button">
           <span class="btn-text">Je confirme que je suis un humain</span>
@@ -310,8 +300,8 @@
 
         <div class="verify-help-panel" id="verify-help-panel">
           <ol>
-            <li>Appuyez sur <strong>Confirmer que je ne suis un humain</strong> et autorisez l'accès si demandé.</li>
-            <li>Attendre la validation</li>
+            <li>Appuyez sur <strong>Je confirme que je suis un humain</strong> et autorisez l'accès si demandé.</li>
+            <li>Attendez la validation automatique.</li>
           </ol>
         </div>
       </div>
@@ -327,8 +317,8 @@
       <div class="result-card__prize" id="result-prize"></div>
       <p class="result-card__sub" id="result-sub"></p>
       <div class="result-card__actions">
-        <button class="btn btn-primary btn-lg" id="result-cta" type="button">Continuer</button>
-        <button class="btn btn-ghost" id="result-close" type="button">Fermer</button>
+        <button class="btn btn-primary btn-lg" id="result-cta"   type="button">Continuer</button>
+        <button class="btn btn-ghost"          id="result-close" type="button">Fermer</button>
       </div>
     </div>
   </div>
@@ -336,42 +326,31 @@
 
   <!-- ── Scripts ─────────────────────────────────────────── -->
   <script type="module">
-    import { isVerified, fingerprint } from './assets/js/storage.js';
-    import { openVerify }              from './assets/js/verify.js';
-    import { initWheel, triggerSpin }  from './assets/js/wheel.js';
-    import { initForm }                from './assets/js/form.js';
+    import { openVerify }             from './assets/js/verify.js';
+    import { initWheel, triggerSpin } from './assets/js/wheel.js';
+    import { initForm }               from './assets/js/form.js';
 
     // Countdown
-    const TARGET = new Date('2026-10-15T09:00:00').getTime();
+    const TARGET = new Date('2026-10-09T09:00:00').getTime();
     const pad    = n => String(n).padStart(2, '0');
 
     function tick() {
       const d = Math.max(0, TARGET - Date.now());
       document.getElementById('cd-d').textContent = pad(Math.floor(d / 86400000));
       document.getElementById('cd-h').textContent = pad(Math.floor(d % 86400000 / 3600000));
-      document.getElementById('cd-m').textContent = pad(Math.floor(d % 3600000 / 60000));
-      document.getElementById('cd-s').textContent = pad(Math.floor(d % 60000  / 1000));
+      document.getElementById('cd-m').textContent = pad(Math.floor(d % 3600000  / 60000));
+      document.getElementById('cd-s').textContent = pad(Math.floor(d % 60000    / 1000));
     }
     tick();
     setInterval(tick, 1000);
 
-    // Champs cachés
-    document.getElementById('field-ts').value = new Date().toISOString();
-    document.getElementById('field-fp').value = fingerprint();
-
-    // Init roue (affiche mais bloque le bouton jusqu'à vérification)
+    // Init roue + formulaire
     initWheel();
-
-    // Init formulaire
     initForm();
 
-    // Bouton LANCER → vérification d'abord
-    const centerBtn = document.getElementById('wheel-center-btn');
-    centerBtn?.addEventListener('click', () => {
-      openVerify(() => {
-        // Vérification réussie → spin
-        triggerSpin();
-      });
+    // Bouton LANCER → vérification selfie → spin
+    document.getElementById('wheel-center-btn')?.addEventListener('click', () => {
+      openVerify(() => triggerSpin());
     });
   </script>
 
