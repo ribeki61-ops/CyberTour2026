@@ -9,7 +9,6 @@
   <link rel="stylesheet" href="assets/css/main.css">
   <link rel="stylesheet" href="assets/css/confirmation.css">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -27,49 +26,20 @@
 
         <h1 class="confirm-title">Votre lot<br>vous attend.</h1>
 
-        <!-- Lot -->
         <div class="confirm-prize">
           <div class="confirm-prize__label">Vous avez gagné</div>
           <div class="confirm-prize__name" id="confirm-prize-name">—</div>
         </div>
 
-        <!-- Instructions -->
         <p class="confirm-instructions">
           Présentez-vous au <strong>stand Cybertour</strong> avec cet écran
-          et votre carte d'identité à la fin de l'événement.
+          pour récupérer votre lot.
         </p>
-
-        <!-- QR code -->
-        <div class="confirm-qr-block">
-          <div class="confirm-qr-label">QR de récupération</div>
-          <div class="confirm-qr-code">
-            <canvas id="confirm-qr"></canvas>
-          </div>
-          <span class="confirm-ref" id="confirm-ref"></span>
-        </div>
-
-        <!-- Timer -->
-        <div class="confirm-timer" role="timer" aria-live="polite">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-          </svg>
-          <span>Page valable encore</span>
-          <span class="confirm-timer__val" id="expire-val">10:00</span>
-        </div>
 
       </div>
 
       <div class="confirm-card__foot">
-        <a id="linkedin-btn" href="#" class="btn btn-linkedin btn-lg" target="_blank" rel="noopener">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/>
-            <circle cx="4" cy="4" r="2"/>
-          </svg>
-          Partager sur LinkedIn
-        </a>
-        <button class="btn btn-ghost" disabled type="button">
-          Nouvelle participation — non disponible
-        </button>
+        <a href="game.html" class="btn btn-ghost btn-lg">Retour à l'accueil</a>
         <p class="confirm-note text-muted">Une seule participation par personne et par événement.</p>
       </div>
     </div>
@@ -77,60 +47,13 @@
   </div>
 
   <script type="module">
-    import { getConfirm } from './assets/js/storage.js';
-    import { rain }       from './assets/js/confetti.js';
+    import { rain } from './assets/js/confetti.js';
 
-    const data  = getConfirm();
-    const prize = data?.prize  || { name: 'Lot Cybertour' };
-    const ref   = data?.ref    || genRef();
-    const first = data?.firstName || '';
+    const lot = sessionStorage.getItem('ct26_lot') || 'Lot Cybertour';
+    document.getElementById('confirm-prize-name').textContent = lot;
 
-    // Affiche le lot
-    document.getElementById('confirm-prize-name').textContent = prize.name;
-    document.getElementById('confirm-ref').textContent        = ref;
-
-    // QR de récupération
-    QRCode.toCanvas(
-      document.getElementById('confirm-qr'),
-      JSON.stringify({ ref, nom: `${first} ${data?.lastName || ''}`.trim(), lot: prize.name, ts: new Date(data?.ts || Date.now()).toISOString().slice(0,19) }),
-      { width: 160, margin: 1, color: { dark: '#09090b', light: '#ffffff' }, errorCorrectionLevel: 'M' }
-    );
-
-    // LinkedIn
-    const li = encodeURIComponent(`Je viens de participer à #Cybertour2026 et j'ai gagné : ${prize.name}. Rendez-vous le 15 octobre à Rouen ! #Cybersécurité`);
-    document.getElementById('linkedin-btn').href = `https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fcybertour.io&summary=${li}`;
-
-    // Timer 10 min
-    const end   = Date.now() + 10 * 60 * 1000;
-    const valEl = document.getElementById('expire-val');
-    const tick  = setInterval(() => {
-      const left = Math.max(0, end - Date.now());
-      const m    = Math.floor(left / 60000);
-      const s    = Math.floor(left % 60000 / 1000);
-      valEl.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-      if (left <= 60000) valEl.style.color = 'var(--danger)';
-      if (left <= 0) { clearInterval(tick); showExpired(); }
-    }, 1000);
-
-    // Confettis discrets
     rain();
-
-    function showExpired() {
-      const b = document.createElement('div');
-      b.className = 'expired-banner';
-      b.innerHTML = `
-        <h2 style="font-family:var(--font-h);font-size:var(--text-2xl);font-weight:800;">Page expirée</h2>
-        <p class="text-muted" style="font-size:var(--text-sm);max-width:32ch;text-align:center;">Présentez-vous au stand avec votre référence de participation :</p>
-        <div class="expired-ref">${ref}</div>
-        <a href="index.html" class="btn btn-ghost">Retour à l'accueil</a>
-      `;
-      document.body.appendChild(b);
-    }
-
-    function genRef() {
-      const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-      return 'CT26-' + Array.from({length:8}, () => c[Math.floor(Math.random()*c.length)]).join('');
-    }
   </script>
+
 </body>
 </html>
