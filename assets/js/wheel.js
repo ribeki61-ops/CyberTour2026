@@ -1,5 +1,6 @@
 /**
  * CYBERTOUR 2026 — wheel.js
+ * 1 chance sur 5 (20%) — sessionStorage (reset au refresh)
  */
 
 const SEGMENTS = [
@@ -83,7 +84,7 @@ export function initWheel() {
 
   if (sessionStorage.getItem('ct26_done')) {
     const ap = document.getElementById('already-played');
-    if (ap) ap.style.display = 'block';
+    if (ap) ap.classList.add('active');
     const ww = document.getElementById('wheel-wrap');
     if (ww) ww.style.pointerEvents = 'none';
   }
@@ -104,7 +105,9 @@ export function triggerSpin() {
   });
   const targetIdx    = candidats[Math.floor(Math.random() * candidats.length)];
   const targetCenter = targetIdx * ARC + ARC / 2;
-  const finalAngle   = -(Math.PI / 2 + targetCenter + 7 * 2 * Math.PI);
+
+  // Pointeur en HAUT → offset −π/2
+  const finalAngle = -(Math.PI / 2 + targetCenter + 7 * 2 * Math.PI);
 
   animate(currentAngle, finalAngle, 5500, () => {
     currentAngle = finalAngle % (2 * Math.PI);
@@ -143,14 +146,11 @@ function showResult(seg, isWin) {
       confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
       setTimeout(() => confetti({ particleCount: 80, spread: 60, origin: { y: 0.5 } }), 700);
     }
-
     prizeEl.textContent  = prizeName;
     subEl.textContent    = 'Félicitations ! Renseignez vos coordonnées pour récupérer votre lot au stand.';
     ctaBtn.textContent   = 'Remplir mes coordonnées';
     ctaBtn.style.display = 'inline-flex';
-
-    ctaBtn.onclick = () => afficherFormulaire(prizeName);
-
+    ctaBtn.onclick       = () => afficherFormulaire(prizeName);
   } else {
     prizeEl.textContent    = 'Pas de chance…';
     subEl.textContent      = 'Merci d\'avoir participé ! On se retrouve à la prochaine édition du Cybertour.';
@@ -163,31 +163,20 @@ function showResult(seg, isWin) {
 }
 
 function afficherFormulaire(prizeName) {
-  // 1. Fermer le modal résultat
   const overlay = document.getElementById('result-overlay');
-  if (overlay) {
-    overlay.classList.remove('active');
-    overlay.style.display = 'none';
-  }
+  if (overlay) overlay.classList.remove('active');
 
-  // 2. Remplir les champs cachés
   const lotField = document.getElementById('field-lot');
   const tsField  = document.getElementById('field-ts');
   const recap    = document.getElementById('prize-recap-name');
-  if (lotField) lotField.value       = prizeName;
-  if (tsField)  tsField.value        = new Date().toISOString();
-  if (recap)    recap.textContent    = prizeName;
+  if (lotField) lotField.value    = prizeName;
+  if (tsField)  tsField.value     = new Date().toISOString();
+  if (recap)    recap.textContent = prizeName;
 
-  // 3. Afficher la section formulaire — setProperty 'important' passe au-dessus de tout CSS
-  const fs = document.getElementById("form-section");
+  // Le CSS gère display:none → display:flex via .active
+  const fs = document.getElementById('form-section');
   if (fs) {
-    fs.classList.remove("form-section--hidden");
-    fs.style.setProperty('display', 'block', 'important');
-    fs.style.setProperty('visibility', 'visible', 'important');
-    fs.style.setProperty('opacity', '1', 'important');
-    // Scroll après un léger délai pour laisser le navigateur repeindre
-    setTimeout(() => {
-      fs.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 80);
+    fs.classList.add('active');
+    setTimeout(() => fs.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
   }
 }
