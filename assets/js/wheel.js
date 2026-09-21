@@ -1,6 +1,6 @@
 /**
  * CYBERTOUR 2026 — wheel.js
- * 1 chance sur 5 (20%) — sessionStorage (reset au refresh)
+ * 1 chance sur 5 (20%) — sessionStorage
  */
 
 const SEGMENTS = [
@@ -132,20 +132,14 @@ function showResult(seg, isWin) {
   const subEl    = document.getElementById('result-sub');
   const closeBtn = document.getElementById('result-close');
 
-  // Sécurité : si un élément manque on s'arrête
-  if (!overlay || !prizeEl || !subEl || !closeBtn) {
-    console.error('showResult : éléments manquants dans le DOM');
-    return;
-  }
-
-  const prizeName = seg.label.replace('\n', ' ');
+  if (!overlay || !prizeEl || !subEl || !closeBtn) return;
 
   if (isWin) {
     if (window.confetti) {
       confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
       setTimeout(() => confetti({ particleCount: 80, spread: 60, origin: { y: 0.5 } }), 700);
     }
-    prizeEl.textContent = '🎉 ' + prizeName;
+    prizeEl.textContent = '🎉 ' + seg.label.replace('\n', ' ');
     subEl.textContent   = 'Félicitations ! Nous avons vos coordonnées et nous vous contacterons pour vous remettre votre lot.';
   } else {
     prizeEl.textContent = 'Pas de chance…';
@@ -154,6 +148,5 @@ function showResult(seg, isWin) {
 
   closeBtn.textContent = 'Fermer';
   closeBtn.onclick     = () => overlay.classList.remove('active');
-
   overlay.classList.add('active');
 }
