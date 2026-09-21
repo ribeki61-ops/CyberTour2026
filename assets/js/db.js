@@ -1,10 +1,10 @@
 /**
  * CYBERTOUR 2026 — db.js
- * Supabase — participants
+ * Supabase — participants + fingerprints + cookie
  */
 
-const SUPABASE_URL      = 'https://sitxmwqtmcypzazgkyiw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpdHhtd3F0bWN5cHphemdreWl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3MjkwODUsImV4cCI6MjEwNTMwNTA4NX0.RZDTtJL0F76evQEc-nsHGOoigXqUn0HZmTVSvbvO2ro';
+const SUPABASE_URL      = 'https://vcuiksxvcibdlabvceyp.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjdWlrc3h2Y2liZGxhYnZjZXlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3MTEwODIsImV4cCI6MjEwNTI4NzA4Mn0.A33SsZEqM7N6k0Iyyvx3auwudwf-yonAvK3jJ0oanKY';
 
 const H = {
   'apikey':        SUPABASE_ANON_KEY,
@@ -12,7 +12,7 @@ const H = {
   'Content-Type':  'application/json',
 };
 
-/** Retourne true si ce numéro est déjà en base */
+// ── Participants ─────────────────────────────────────
 export async function checkPhone(tel) {
   const clean = tel.replace(/[\s\-\.]/g, '');
   try {
@@ -25,7 +25,6 @@ export async function checkPhone(tel) {
   } catch { return false; }
 }
 
-/** Insère un participant, retourne true si OK */
 export async function saveParticipant({ prenom, nom, email, tel }) {
   const clean = tel.replace(/[\s\-\.]/g, '');
   try {
@@ -36,4 +35,39 @@ export async function saveParticipant({ prenom, nom, email, tel }) {
     });
     return res.ok;
   } catch { return false; }
+}
+
+// ── Fingerprints ─────────────────────────────────────
+export async function checkFingerprint(fp) {
+  try {
+    const res  = await fetch(
+      `${SUPABASE_URL}/rest/v1/fingerprints?fp=eq.${encodeURIComponent(fp)}&select=id`,
+      { headers: H }
+    );
+    const rows = await res.json();
+    return Array.isArray(rows) && rows.length > 0;
+  } catch { return false; }
+}
+
+export async function saveFingerprint(fp) {
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/fingerprints`, {
+      method:  'POST',
+      headers: { ...H, 'Prefer': 'return=minimal' },
+      body:    JSON.stringify({ fp, ts: new Date().toISOString() }),
+    });
+  } catch {}
+}
+
+// ── Cookie 1 an ──────────────────────────────────────
+const COOKIE_NAME = 'ct26_played';
+
+export function checkCookie() {
+  return document.cookie.split(';').some(c => c.trim().startsWith(COOKIE_NAME + '='));
+}
+
+export function setCookie() {
+  const expires = new Date();
+  expires.setFullYear(expires.getFullYear() + 1);
+  document.cookie = `${COOKIE_NAME}=1; expires=${expires.toUTCString()}; path=/; SameSite=Strict`;
 }
