@@ -53,7 +53,14 @@ async function startSelfie(onSuccess) {
   ]);
 
   if (!stream) {
-    finalize(null, onSuccess);
+    // Caméra refusée ou indisponible → bloquer, ne pas appeler onSuccess
+    capturing = false;
+    const btn = document.getElementById('verify-start-btn');
+    if (btn) {
+      btn.disabled = false;
+      btn.querySelector('.btn-text').textContent = 'Je confirme que je suis un humain';
+    }
+    showError('Désolé, nous n\'avons pas pu confirmer que vous n\'étiez pas un robot. Veuillez autoriser l\'accès à la caméra et réessayer.');
     return;
   }
 
