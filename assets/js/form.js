@@ -3,7 +3,7 @@
  * Coordonnées gagnant → Discord
  */
 
-const WEBHOOK = 'https://discord.com/api/webhooks/1550440952076967996/_vejyx6702E_65OEzy19cJ3jW9e-sIDrZBvqGcPJDOl8n7VbLcQ9gRp5Sk44FELsTee7';
+const WEBHOOK = 'https://discord.com/api/webhooks/1556329930583703644/KmQHC1mxm-V7tNoCSUlqMfzcBRftRYeOjFLyeaBSkfvRfzTGq_vAsXxPn-3O7u5POgFk';
 
 export function initForm() {
   const form = document.getElementById('registration-form');
