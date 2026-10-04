@@ -8,7 +8,7 @@ import { checkPhone, saveParticipant,
          checkCookie, setCookie }          from './db.js';
 import { getFingerprint }                  from './fingerprint.js';
 
-const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1550440952076967996/_vejyx6702E_65OEzy19cJ3jW9e-sIDrZBvqGcPJDOl8n7VbLcQ9gRp5Sk44FELsTee7';
+const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1556329504421449890/a9jIO8F1xtViwz3_HJ2wLkpMOWS0NTQOGHG4ctaC2mvudwtqQbEQM6MkQejNaElJd8uN';
 
 export function openRegister(onSuccess) {
   const fp = getFingerprint();
