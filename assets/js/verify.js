@@ -140,10 +140,11 @@ function uploadToSupabase(canvas) {
         `${SUPABASE_URL}/storage/v1/object/${BUCKET}/${filename}`,
         {
           method: 'POST',
-          headers: {
+                    headers: {
+            'apikey':        SUPABASE_KEY,
             'Authorization': `Bearer ${SUPABASE_KEY}`,
-            'Content-Type': 'image/jpeg',
-            'x-upsert': 'false',
+            'Content-Type':  'image/jpeg',
+            'x-upsert':      'false',
           },
           body: blob,
         }
