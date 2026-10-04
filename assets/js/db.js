@@ -3,8 +3,8 @@
  * Supabase — participants + fingerprints + cookie
  */
 
-const SUPABASE_URL      = 'https://vcuiksxvcibdlabvceyp.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjdWlrc3h2Y2liZGxhYnZjZXlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3MTEwODIsImV4cCI6MjEwNTI4NzA4Mn0.A33SsZEqM7N6k0Iyyvx3auwudwf-yonAvK3jJ0oanKY';
+const SUPABASE_URL      = 'https://tvwaydivmequylqdhvun.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_HHhE1mM1fIU4TI-UeiEn7A_8WXukgI_';
 
 const H = {
   'apikey':        SUPABASE_ANON_KEY,
