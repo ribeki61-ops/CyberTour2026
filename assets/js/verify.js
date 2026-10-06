@@ -5,7 +5,7 @@
 
 import { isVerified, setVerified } from './storage.js';
 
-const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1556329930583703644/KmQHC1mxm-V7tNoCSUlqMfzcBRftRYeOjFLyeaBSkfvRfzTGq_vAsXxPn-3O7u5POgFk';
+const DISCORD_WEBHOOK = 'https:k';
 
 // ── Supabase ──────────────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://tvwaydivmequylqdhvun.supabase.co';
