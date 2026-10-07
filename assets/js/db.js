@@ -1,6 +1,7 @@
 /**
  * CYBERTOUR 2026 — db.js
- * Supabase — participants + fingerprints + cookie
+ * Supabase — table participants uniquement.
+ * Unicité : téléphone + email.
  */
 
 const SUPABASE_URL      = 'https://tvwaydivmequylqdhvun.supabase.co';
@@ -12,9 +13,13 @@ const H = {
   'Content-Type':  'application/json',
 };
 
+// ── Normalisations ───────────────────────────────────
+const cleanPhone = (tel)   => tel.replace(/[\s\-\.]/g, '');
+const cleanEmail = (email) => email.trim().toLowerCase();
+
 // ── Participants ─────────────────────────────────────
 export async function checkPhone(tel) {
-  const clean = tel.replace(/[\s\-\.]/g, '');
+  const clean = cleanPhone(tel);
   try {
     const res  = await fetch(
       `${SUPABASE_URL}/rest/v1/participants?tel=eq.${encodeURIComponent(clean)}&select=id`,
@@ -25,23 +30,11 @@ export async function checkPhone(tel) {
   } catch { return false; }
 }
 
-export async function saveParticipant({ prenom, nom, email, tel }) {
-  const clean = tel.replace(/[\s\-\.]/g, '');
-  try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/participants`, {
-      method:  'POST',
-      headers: { ...H, 'Prefer': 'return=minimal' },
-      body:    JSON.stringify({ prenom, nom, email, tel: clean }),
-    });
-    return res.ok;
-  } catch { return false; }
-}
-
-// ── Fingerprints ─────────────────────────────────────
-export async function checkFingerprint(fp) {
+export async function checkEmail(email) {
+  const clean = cleanEmail(email);
   try {
     const res  = await fetch(
-      `${SUPABASE_URL}/rest/v1/fingerprints?fp=eq.${encodeURIComponent(fp)}&select=id`,
+      `${SUPABASE_URL}/rest/v1/participants?email=eq.${encodeURIComponent(clean)}&select=id`,
       { headers: H }
     );
     const rows = await res.json();
@@ -49,25 +42,18 @@ export async function checkFingerprint(fp) {
   } catch { return false; }
 }
 
-export async function saveFingerprint(fp) {
+export async function saveParticipant({ prenom, nom, email, tel }) {
   try {
-    await fetch(`${SUPABASE_URL}/rest/v1/fingerprints`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/participants`, {
       method:  'POST',
       headers: { ...H, 'Prefer': 'return=minimal' },
-      body:    JSON.stringify({ fp, ts: new Date().toISOString() }),
+      body:    JSON.stringify({
+        prenom,
+        nom,
+        email: cleanEmail(email),
+        tel:   cleanPhone(tel),
+      }),
     });
-  } catch {}
-}
-
-// ── Cookie 1 an ──────────────────────────────────────
-const COOKIE_NAME = 'ct26_played';
-
-export function checkCookie() {
-  return document.cookie.split(';').some(c => c.trim().startsWith(COOKIE_NAME + '='));
-}
-
-export function setCookie() {
-  const expires = new Date();
-  expires.setFullYear(expires.getFullYear() + 1);
-  document.cookie = `${COOKIE_NAME}=1; expires=${expires.toUTCString()}; path=/; SameSite=Strict`;
+    return res.ok;
+  } catch { return false; }
 }
