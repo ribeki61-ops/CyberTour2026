@@ -1,5 +1,6 @@
 /**
  * CYBERTOUR 2026 — storage.js
+ * Fichier ORIGINAL — ne touche pas.
  */
 
 const SESSION_MS = 30 * 60 * 1000;
