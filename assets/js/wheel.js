@@ -1,6 +1,6 @@
 /**
  * CYBERTOUR 2026 — wheel.js
- * 1 chance sur 5 (20%) — sessionStorage
+ * 1 chance sur 5 (20%) — sans blocage, on peut rejouer
  */
 
 const SEGMENTS = [
@@ -82,12 +82,11 @@ export function initWheel() {
 
   draw();
 
-  if (sessionStorage.getItem('ct26_done')) {
-    const ap = document.getElementById('already-played');
-    if (ap) ap.classList.add('active');
-    const ww = document.getElementById('wheel-wrap');
-    if (ww) ww.style.pointerEvents = 'none';
-  }
+  // Plus de blocage "déjà joué" côté navigateur
+  const ap = document.getElementById('already-played');
+  if (ap) ap.classList.remove('active');
+  const ww = document.getElementById('wheel-wrap');
+  if (ww) ww.style.pointerEvents = '';
 }
 
 export function triggerSpin() {
@@ -110,7 +109,7 @@ export function triggerSpin() {
   animate(currentAngle, finalAngle, 5500, () => {
     currentAngle = finalAngle % (2 * Math.PI);
     spinning     = false;
-    sessionStorage.setItem('ct26_done', '1');
+    if (centerBtn) centerBtn.disabled = false;
     showResult(SEGMENTS[targetIdx], isWin);
   });
 }
