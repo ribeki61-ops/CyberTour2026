@@ -1,29 +1,14 @@
 /**
  * CYBERTOUR 2026 — register.js
- * Triple protection : cookie + fingerprint + numéro de tél
+ * Anti-spam : un seul passage par numéro de tél ET par email.
+ * Plus de cookie, plus de fingerprint navigateur.
  */
 
-import { checkPhone, saveParticipant,
-         checkFingerprint, saveFingerprint,
-         checkCookie, setCookie }          from './db.js';
-import { getFingerprint }                  from './fingerprint.js';
+import { checkPhone, checkEmail, saveParticipant } from './db.js';
 
 const DISCORD_WEBHOOK = 'https:';
 
 export function openRegister(onSuccess) {
-  const fp = getFingerprint();
-
-  // Vérif 1 : cookie
-  if (checkCookie()) {
-    showBlockModal('Vous avez déjà participé sur cet appareil.');
-    return;
-  }
-
-  // Vérif 2 : fingerprint BDD
-  checkFingerprint(fp).then(exists => {
-    if (exists) showBlockModal('Vous avez déjà participé sur cet appareil.');
-  });
-
   const overlay   = document.getElementById('register-overlay');
   const form      = document.getElementById('register-form');
   const submitBtn = document.getElementById('register-submit');
@@ -52,23 +37,33 @@ export function openRegister(onSuccess) {
     submitBtn.disabled = true;
     submitBtn.querySelector('.btn-text').textContent = 'Vérification en cours…';
 
-    // Vérif 3 : numéro de tél
-    const dejaParticipe = await checkPhone(data.tel);
-    if (dejaParticipe) {
+    // --- Vérif téléphone ---
+    if (await checkPhone(data.tel)) {
       errorEl.textContent   = 'Ce numéro de téléphone a déjà été utilisé pour participer.';
       errorEl.style.display = 'block';
-      submitBtn.disabled    = false;
-      submitBtn.querySelector('.btn-text').textContent = 'Confirmer et accéder à la roulette';
+      resetBtn(submitBtn);
+      return;
+    }
+
+    // --- Vérif email ---
+    if (await checkEmail(data.email)) {
+      errorEl.textContent   = 'Cette adresse email a déjà été utilisée pour participer.';
+      errorEl.style.display = 'block';
+      resetBtn(submitBtn);
       return;
     }
 
     submitBtn.querySelector('.btn-text').textContent = 'Enregistrement…';
 
-    await saveParticipant(data);
-    await saveFingerprint(fp);
-    setCookie();
-    notifyDiscord(data);
+    const saved = await saveParticipant(data);
+    if (!saved) {
+      errorEl.textContent   = 'Participation déjà enregistrée pour ces coordonnées.';
+      errorEl.style.display = 'block';
+      resetBtn(submitBtn);
+      return;
+    }
 
+    notifyDiscord(data);
     sessionStorage.setItem('ct26_participant', JSON.stringify(data));
 
     overlay.classList.remove('active');
@@ -76,22 +71,9 @@ export function openRegister(onSuccess) {
   };
 }
 
-function showBlockModal(msg) {
-  const overlay = document.getElementById('register-overlay');
-  if (!overlay) return;
-
-  const head = overlay.querySelector('.verify-modal__head p');
-  const body = overlay.querySelector('.verify-modal__body');
-  const foot = overlay.querySelector('.verify-modal__foot');
-
-  if (head) head.textContent   = msg;
-  if (body) body.style.display = 'none';
-  if (foot) foot.innerHTML     = `
-    <p style="text-align:center;font-size:var(--text-sm);color:var(--muted);padding:var(--s4) 0;">
-      Une seule participation par personne et par événement.
-    </p>`;
-
-  overlay.classList.add('active');
+function resetBtn(btn) {
+  btn.disabled = false;
+  btn.querySelector('.btn-text').textContent = 'Confirmer et accéder à la roulette';
 }
 
 function validate() {
