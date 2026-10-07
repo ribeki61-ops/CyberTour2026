@@ -1,6 +1,6 @@
 /**
  * CYBERTOUR 2026 — wheel.js
- * 1 chance sur 5 (20%) — sans blocage, on peut rejouer
+ * 1 chance sur 5 (20%) — un seul tour, puis bouton désactivé
  */
 
 const SEGMENTS = [
@@ -23,6 +23,7 @@ const ARC = (2 * Math.PI) / N;
 
 let currentAngle = 0;
 let spinning     = false;
+let hasSpun      = false;
 let canvas, ctx;
 
 function draw() {
@@ -82,7 +83,6 @@ export function initWheel() {
 
   draw();
 
-  // Plus de blocage "déjà joué" côté navigateur
   const ap = document.getElementById('already-played');
   if (ap) ap.classList.remove('active');
   const ww = document.getElementById('wheel-wrap');
@@ -90,7 +90,7 @@ export function initWheel() {
 }
 
 export function triggerSpin() {
-  if (spinning) return;
+  if (spinning || hasSpun) return;
   spinning = true;
 
   const centerBtn = document.getElementById('wheel-center-btn');
@@ -109,7 +109,8 @@ export function triggerSpin() {
   animate(currentAngle, finalAngle, 5500, () => {
     currentAngle = finalAngle % (2 * Math.PI);
     spinning     = false;
-    if (centerBtn) centerBtn.disabled = false;
+    hasSpun      = true;
+    // Bouton reste désactivé — un seul tour par chargement de page
     showResult(SEGMENTS[targetIdx], isWin);
   });
 }
